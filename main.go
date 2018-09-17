@@ -17,8 +17,8 @@ func init() {
 
 // 全局配置信息
 var (
-	droneHost   = os.Getenv("DRONE_HOST")
 	droneScheme = os.Getenv("DRONE_SCHEME")
+	droneHost   = os.Getenv("DRONE_HOST")
 	droneToken  = os.Getenv("DRONE_TOKEN")
 	apiPrefix   = os.Getenv("API_PREFIX")
 	apiTrigger  = os.Getenv("API_TRIGGER")
@@ -39,20 +39,6 @@ var simpleHostProxy = httputil.ReverseProxy{
 
 // 配置检测
 func detectConfig() {
-	if os.Getenv("GIN_MODE") != "release" {
-		const defaultScheme = "https"
-		const defaultHost = "drone.wosoft.me"
-		const defaultToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXh0IjoieWluZnhzIiwidHlwZSI6InVzZXIifQ.2S5G5XbyV-8MeTxyXZ_mlwlD2NCltm1zzhDrJtLNbb0"
-		if droneScheme == "" {
-			droneScheme = defaultScheme
-		}
-		if droneHost == "" {
-			droneHost = defaultHost
-		}
-		if droneToken == "" {
-			droneToken = defaultToken
-		}
-	}
 	const defaultPrefix = "/api"
 	if apiPrefix == "" {
 		apiPrefix = defaultPrefix
