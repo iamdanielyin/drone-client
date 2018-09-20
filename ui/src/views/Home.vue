@@ -24,9 +24,9 @@
 <script>
 import Vue from 'vue'
 import _ from 'lodash'
-import { NavBar, Loading, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh } from 'vant'
+import { NavBar, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh } from 'vant'
 import { getUserRepos } from '@/api/repo'
-Vue.use(NavBar).use(Loading).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use(CellGroup).use(PullRefresh)
+Vue.use(NavBar).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use(CellGroup).use(PullRefresh)
 
 export default {
   name: 'home',
