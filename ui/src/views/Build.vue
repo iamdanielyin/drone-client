@@ -24,7 +24,7 @@
                 <van-icon name="clock" v-else style="color: #fdb835" />
               </template>
             </span>
-            {{build.author}}:{{build.branch}}
+            {{build.author}}: {{build.branch}}
           </div>
           <p slot="desc" style="color: #666; font-size: 12px;">
             {{build.message}}
@@ -55,7 +55,7 @@
           </template>
           <template slot="tags">
             <span style="color: #bdbdbd; font-size: 12px; margin-right: 2px;">{{build.created_at | unixDateTime}}</span>
-            <van-tag plain type="primary">
+            <van-tag plain type="primary" v-if="build.started_at && build.finished_at">
               {{calcTime(build.started_at, build.finished_at)}}
             </van-tag>
           </template>
@@ -85,11 +85,8 @@ export default {
   },
   methods: {
     calcTime: function (startedAt, finishedAt) {
-      if (startedAt && finishedAt) {
-        const time = moment.unix(finishedAt).diff(moment.unix(startedAt), 's')
-        return `${time}s`
-      }
-      return '-'
+      const time = moment.unix(finishedAt).diff(moment.unix(startedAt), 's')
+      return `${time}s`
     },
     fetchBuilds: async function () {
       this.isLoading = true
@@ -111,14 +108,14 @@ export default {
     handleRetry: async function (buildId) {
       this.loadingBuildId = buildId
       await postReposBuilds(this.owner, this.repo, buildId)
-      await _.debounce(this.fetchBuilds, 1000)()
       this.loadingBuildId = null
+      await _.debounce(this.fetchBuilds, 800)()
     },
     handleStop: async function (buildId) {
       this.loadingBuildId = buildId
       await deleteReposBuilds(this.owner, this.repo, buildId)
-      await _.debounce(this.fetchBuilds, 1000)()
       this.loadingBuildId = null
+      await _.debounce(this.fetchBuilds, 800)()
     }
   },
   created: function () {
