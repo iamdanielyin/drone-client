@@ -14,3 +14,5 @@
 debug*
 .vscode
 .idea
+*.db
+package-lock.json
