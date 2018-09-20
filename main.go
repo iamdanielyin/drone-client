@@ -120,7 +120,7 @@ func getToken() string {
 func main() {
 	defer db.Close()
 	engine := gin.New()
-	engine.Static("/client", "./client/dist")
+	engine.Static("/ui", "./ui/dist")
 	vi := engine.Group(apiPrefix)
 	vi.GET("/login", func(c *gin.Context) {
 		token := getToken()
@@ -141,7 +141,7 @@ func main() {
 	vi.Any(fmt.Sprintf("%s/*api", apiTrigger), func(c *gin.Context) {
 		simpleHostProxy.ServeHTTP(c.Writer, c.Request)
 	})
-	err := engine.Run(":8081")
+	err := engine.Run(":3000")
 	if err != nil {
 		log.Println(err)
 	}

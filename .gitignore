@@ -16,3 +16,4 @@ debug*
 .idea
 *.db
 package-lock.json
+yarn.lock
