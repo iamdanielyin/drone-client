@@ -1,5 +1,11 @@
 <template>
   <div class='home'>
+    <van-nav-bar
+      title="Repo List"
+      @click-right='fetchRepos'
+    >
+      <van-icon name="home" slot="right" />
+    </van-nav-bar>
     <van-collapse v-model='activeNames'>
       <van-collapse-item v-for="(list, owner) in repos" :title='owner' :name='owner' :key='owner'>
         <router-link v-for="repo in list" :to="{ name: 'build', query: { owner, repo: repo.name } }" :key='repo.id'>
@@ -13,9 +19,9 @@
 <script>
 import Vue from 'vue'
 import _ from 'lodash'
-import { Collapse, CollapseItem, Cell, CellGroup } from 'vant'
+import { NavBar, Loading, Icon, Collapse, CollapseItem, Cell, CellGroup, Toast } from 'vant'
 import { getUserRepos } from '@/api/repo'
-Vue.use(Collapse).use(CollapseItem).use(Cell).use(CellGroup)
+Vue.use(NavBar).use(Loading).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(CellGroup)
 
 export default {
   name: 'home',
@@ -27,9 +33,14 @@ export default {
   },
   methods: {
     fetchRepos: async function () {
+      Toast.loading({
+        mask: true,
+        duration: 0,
+        forbidClick: true
+      })
       const repos = await getUserRepos()
       this.repos = _.groupBy(repos, 'owner')
-      console.log(this.repos)
+      Toast.clear()
     }
   },
   created: function () {
