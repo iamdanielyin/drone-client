@@ -59,7 +59,7 @@ export default {
       buildLogsNames: null,
       buildInfo: {},
       buildLogs: [],
-      procs: [],
+      procs: []
     }
   },
   computed: {
