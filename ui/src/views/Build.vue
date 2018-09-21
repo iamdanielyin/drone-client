@@ -1,7 +1,7 @@
 <template>
   <div class="build">
     <van-nav-bar
-      :title="this.repo || 'Build List'"
+      :title="this.repo + ' (' + this.filteredBuilds.length + ') '"
       :right-text="filterBranch || 'Branches'"
       left-arrow
       fixed
@@ -33,13 +33,12 @@
             </p>
             <template slot="footer">
               <van-button
-                type="primary"
                 size="small"
                 @click.stop.prevent="handleRetry(build.number)"
                 v-if="build.status !== 'running'"
                 :loading="build.number === loadingBuildId"
                 plain
-                style="border: 1px solid #4A79DC; color: #4A79DC;"
+                style="color: #4A79DC;"
               >
                 RETRY
               </van-button>
@@ -56,7 +55,7 @@
             </template>
             <template slot="tags">
               <span style="color: #bdbdbd; font-size: 12px; margin-right: 5px;">{{build.created_at | unixDateTime}}</span>
-              <van-tag plain type="primary" v-if="build.started_at && build.finished_at">
+              <van-tag plain v-if="build.started_at && build.finished_at">
                 {{calcTime(build.started_at, build.finished_at)}}
               </van-tag>
             </template>
@@ -150,7 +149,7 @@ export default {
       this.loadingBuildId = buildId
       await deleteReposBuilds(this.owner, this.repo, buildId)
       this.loadingBuildId = null
-      await _.debounce(this.fetchBuilds, 800)()
+      await _.debounce(this.fetchBuilds, 1000)()
     }
   },
   created: function () {
