@@ -47,11 +47,6 @@ func initConfig() {
 // 代理实例
 var simpleHostProxy = httputil.ReverseProxy{
 	Director: func(req *http.Request) {
-		log.Println("droneScheme=", droneScheme)
-		log.Println("droneHost=", droneHost)
-		log.Println("droneToken=", droneToken)
-		log.Println("apiPrefix=", apiPrefix)
-		log.Println("apiTrigger=", apiTrigger)
 		req.URL.Scheme = droneScheme
 		if req.Header.Get("Authorization") == "" && droneToken != "" {
 			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", droneToken))
@@ -59,9 +54,6 @@ var simpleHostProxy = httputil.ReverseProxy{
 		req.URL.Host = droneHost
 		req.URL.Path = strings.Replace(req.URL.Path, fmt.Sprintf("%s%s", apiPrefix, apiTrigger), "/api", 1)
 		req.Host = droneHost
-		log.Println("req.URL.Host=", req.URL.Host)
-		log.Println("req.URL.Path=", req.URL.Path)
-		log.Println("req.Host=", req.Host)
 	},
 }
 

@@ -93,7 +93,8 @@ export default {
     handleLogChange: async function (activeName) {
       activeName = Array.isArray(activeName) ? _.get(activeName, '[0]') : activeName
       const proc = this.procs.find(item => item.pid === activeName)
-      if (['success', 'running', 'failure'].includes(_.get(proc, 'state'))) {
+      const state = _.get(proc, 'state')
+      if (['success', 'failure'].includes(state)) {
         let logs = await getReposBuildInfoLogs(this.owner, this.repo, this.build, activeName)
         logs = _.chain(logs).map(item => item.out).value()
         this.buildLogs = logs

@@ -22,7 +22,7 @@
                 <template>
                   <van-icon name="passed" v-if="build.status === 'success'" style="color: #4dc89a" />
                   <van-icon name="close" v-else-if="build.status === 'failure'" style="color: #fc4758" />
-                  <van-loading type="spinner" v-else-if="build.status === 'running'" style="width: 16px; height: 16px; color: #4A79DC;" />
+                  <van-loading type="spinner" v-else-if="build.status === 'running'" style="width: 16px; height: 16px;" />
                   <van-icon name="clock" v-else style="color: #fdb835" />
                 </template>
               </span>
