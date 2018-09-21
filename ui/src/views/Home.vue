@@ -36,7 +36,7 @@ export default {
   data () {
     return {
       isLoading: false,
-      activeNames: ['1'],
+      activeNames: null,
       repos: {}
     }
   },
@@ -50,6 +50,7 @@ export default {
       this.isLoading = true
       const repos = await getUserRepos()
       this.repos = _.groupBy(repos, 'owner')
+      this.activeNames = _.take(Object.keys(this.repos), 1)
       const $this = this
       _.debounce(() => {
         $this.isLoading = false

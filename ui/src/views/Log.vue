@@ -56,17 +56,13 @@ export default {
   data () {
     return {
       isLoading: false,
-      buildLogsNames: ['1'],
+      buildLogsNames: null,
       buildInfo: {},
-      buildLogs: []
+      buildLogs: [],
+      procs: [],
     }
   },
   computed: {
-    procs: function () {
-      const children = _.get(this.buildInfo, 'procs[0].children', [])
-      console.log(children)
-      return children
-    },
     noData: function () {
       return this.procs.length === 0
     }
@@ -85,6 +81,9 @@ export default {
       }
       this.isLoading = true
       this.buildInfo = await getReposBuildInfo(this.owner, this.repo, this.build)
+      this.procs = _.get(this.buildInfo, 'procs[0].children', [])
+      this.buildLogsNames = _.head(this.procs.map(item => item.pid))
+      await this.handleLogChange(this.buildLogsNames)
       const $this = this
       _.debounce(() => {
         $this.isLoading = false
