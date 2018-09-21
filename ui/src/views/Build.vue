@@ -22,7 +22,7 @@
                 <template>
                   <van-icon name="passed" v-if="build.status === 'success'" style="color: #4dc89a" />
                   <van-icon name="close" v-else-if="build.status === 'failure'" style="color: #fc4758" />
-                  <van-icon name="logistics" v-else-if="build.status === 'running'" style="color: #38f" />
+                  <van-loading type="spinner" v-else-if="build.status === 'running'" style="width: 16px; height: 16px; color: #4A79DC;" />
                   <van-icon name="clock" v-else style="color: #fdb835" />
                 </template>
               </span>
@@ -77,9 +77,9 @@
 import Vue from 'vue'
 import moment from 'moment'
 import _ from 'lodash'
-import { NavBar, List, Panel, Card, Icon, Button, Tag, PullRefresh, Actionsheet } from 'vant'
+import { NavBar, List, Panel, Card, Icon, Button, Tag, PullRefresh, Actionsheet, Loading } from 'vant'
 import { getReposBuilds, postReposBuilds, deleteReposBuilds } from '@/api/build'
-Vue.use(NavBar).use(List).use(Panel).use(Card).use(Icon).use(Button).use(Tag).use(PullRefresh).use(Actionsheet)
+Vue.use(NavBar).use(List).use(Panel).use(Card).use(Icon).use(Button).use(Tag).use(PullRefresh).use(Actionsheet).use(Loading)
 
 export default {
   name: 'home',
