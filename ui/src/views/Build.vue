@@ -2,7 +2,7 @@
   <div class="build">
     <van-nav-bar
       :title="this.repo || 'Build List'"
-      :right-text="filterBranch || '分支过滤'"
+      :right-text="filterBranch || 'branches'"
       left-arrow
       fixed
       @click-left='$router.back()'
@@ -35,7 +35,7 @@
               <van-button
                 type="primary"
                 size="small"
-                @click.stop="handleRetry(build.number)"
+                @click.stop.prevent="handleRetry(build.number)"
                 v-if="build.status !== 'running'"
                 :loading="build.number === loadingBuildId"
                 plain
@@ -46,7 +46,7 @@
               <van-button
                 type="danger"
                 size="small"
-                @click.stop="handleStop(build.number)"
+                @click.stop.prevent="handleStop(build.number)"
                 v-if="build.status === 'running'"
                 :loading="build.number === loadingBuildId"
                 plain
@@ -88,23 +88,6 @@ export default {
     return {
       showBranch: false,
       filterBranch: null,
-      branches: [
-        {
-          name: '所有分支'
-        },
-        {
-          name: 'master',
-          subname: '开发主分支'
-        },
-        {
-          name: 'test',
-          subname: '测试主分支'
-        },
-        {
-          name: 'release',
-          subname: '生产主分支'
-        }
-      ],
       isLoading: false,
       loadingBuildId: null,
       isShow: false,
@@ -113,6 +96,13 @@ export default {
     }
   },
   computed: {
+    branches: function () {
+      const arr = [{ name: 'ALL' }]
+      this.builds.map(build => {
+        arr.push({ name: build.branch })
+      })
+      return _.uniqBy(arr, 'name')
+    },
     noData: function () {
       return this.builds.length === 0
     },
@@ -120,7 +110,7 @@ export default {
       if (!this.filterBranch) {
         return this.builds
       } else {
-        return this.builds.filter(build => build.branch && build.branch.toLowerCase() === this.filterBranch.toLowerCase())
+        return this.builds.filter(build => build.branch && build.branch === this.filterBranch)
       }
     }
   },
@@ -129,7 +119,7 @@ export default {
       this.showBranch = !this.showBranch
     },
     handleChangeBranch: function (item) {
-      this.filterBranch = item.name === '所有分支' ? null : item.name
+      this.filterBranch = item.name === 'ALL' ? null : item.name
       this.toggleShowBranch()
     },
     calcTime: function (startedAt, finishedAt) {
