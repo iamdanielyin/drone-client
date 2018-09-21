@@ -5,7 +5,9 @@
       :title="this.repo + ':' + this.build  || 'Build Logs'"
       left-arrow
       fixed
+      right-text="Copy"
       @click-left='$router.back()'
+      @click-right="handleCopyImage"
     >
     </van-nav-bar>
     <p v-show="noData" class="noData">No data.</p>
@@ -48,9 +50,11 @@
 import Vue from 'vue'
 import moment from 'moment'
 import _ from 'lodash'
-import { NavBar, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh, Loading } from 'vant'
+import VueClipboard from 'vue-clipboard2'
+import { NavBar, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh, Loading, Toast } from 'vant'
 import { getReposBuildInfo, getReposBuildInfoLogs } from '@/api/build'
-Vue.use(NavBar).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use(CellGroup).use(PullRefresh).use(Loading)
+Vue.use(NavBar).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use(CellGroup).use(PullRefresh).use(Loading).use(Toast).use(VueClipboard)
+VueClipboard.config.autoSetContainer = true
 
 export default {
   name: 'home',
@@ -100,6 +104,29 @@ export default {
         this.buildLogs = logs
       } else {
         this.buildLogs = proc ? [proc.state] : []
+      }
+    },
+    handleCopyImage: function () {
+      let image = null
+      const reg1 = new RegExp('image":"(.*)"')
+      const reg2 = new RegExp('docker push (.*)')
+      for (const item of this.buildLogs) {
+        image = _.get(reg1.exec(item), '[1]')
+        image = image || _.get(reg2.exec(item), '[1]')
+        if (image) {
+          break
+        }
+      }
+      if (image) {
+        Toast({
+          message: image
+        })
+        this.$copyText(image)
+      } else {
+        Toast({
+          message: 'Image not found',
+          duration: 1000
+        })
       }
     }
   },
