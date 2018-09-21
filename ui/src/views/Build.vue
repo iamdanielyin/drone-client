@@ -79,7 +79,7 @@ import Vue from 'vue'
 import moment from 'moment'
 import _ from 'lodash'
 import { NavBar, List, Panel, Card, Icon, Button, Tag, PullRefresh, Actionsheet } from 'vant'
-import { getReposBuilds, postReposBuilds, deleteReposBuilds, getReposBuildInfo, getReposBuildInfoLogs } from '@/api/build'
+import { getReposBuilds, postReposBuilds, deleteReposBuilds } from '@/api/build'
 Vue.use(NavBar).use(List).use(Panel).use(Card).use(Icon).use(Button).use(Tag).use(PullRefresh).use(Actionsheet)
 
 export default {
