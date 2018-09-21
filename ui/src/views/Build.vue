@@ -41,7 +41,7 @@
                 plain
                 style="border: 1px solid #4A79DC; color: #4A79DC;"
               >
-                重试
+                RETRY
               </van-button>
               <van-button
                 type="danger"
@@ -49,10 +49,9 @@
                 @click.stop.prevent="handleStop(build.number)"
                 v-if="build.status === 'running'"
                 :loading="build.number === loadingBuildId"
-                plain
-                style="border: 1px solid #F25E56; color: #F25E56;"
+                style="border: 1px solid #F25E56;"
               >
-                停止
+                STOP
               </van-button>
             </template>
             <template slot="tags">

@@ -25,8 +25,9 @@
             <span style="margin-right: 5px; color: #474D5A;">{{proc.name}}</span>
             <template>
               <van-tag plain type="success" v-if="proc.state === 'success'">{{proc.state}}</van-tag>
+              <van-tag type="primary" v-else-if="proc.state === 'running'">{{proc.state}}</van-tag>
               <van-tag plain type="danger" v-else-if="proc.state === 'failure'">{{proc.state}}</van-tag>
-              <van-tag plain v-else-if="proc.state === 'skipped'">{{proc.state}}</van-tag>
+              <van-tag plain v-else-if="['skipped', 'pending'].includes(proc.state)">{{proc.state}}</van-tag>
               <van-tag plain type="primary" v-else>{{proc.state}}</van-tag>
             </template>
             <span style="margin-left: 5px; color: #989DAA; font-size: 12px;" v-if="proc.start_time && proc.end_time">{{calcTime(proc.start_time, proc.end_time)}}</span>
@@ -92,12 +93,12 @@ export default {
     handleLogChange: async function (activeName) {
       activeName = Array.isArray(activeName) ? _.get(activeName, '[0]') : activeName
       const proc = this.procs.find(item => item.pid === activeName)
-      if (_.get(proc, 'state') === 'success') {
+      if (['success', 'running', 'failure'].includes(_.get(proc, 'state'))) {
         let logs = await getReposBuildInfoLogs(this.owner, this.repo, this.build, activeName)
         logs = _.chain(logs).map(item => item.out).value()
         this.buildLogs = logs
       } else {
-        this.buildLogs = proc ? [proc.state, `exit_code=${proc.exit_code}`] : []
+        this.buildLogs = proc ? [proc.state] : []
       }
     }
   },

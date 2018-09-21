@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ver="0.0.2"
+ver="0.0.3"
 tag="yinfxs/drone-client:$ver"
 cd ./ui && npm i && npm run build && cd ../
 GOOS=linux GOARCH=amd64 go build
