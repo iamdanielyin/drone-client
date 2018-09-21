@@ -2,7 +2,7 @@
   <div class="build">
     <van-nav-bar
       :title="this.repo || 'Build List'"
-      :right-text="filterBranch || 'branches'"
+      :right-text="filterBranch || 'Branches'"
       left-arrow
       fixed
       @click-left='$router.back()'
