@@ -26,7 +26,7 @@
                   <van-icon name="clock" v-else style="color: #fdb835" />
                 </template>
               </span>
-              {{build.author}}: {{build.branch}}
+              {{build.author}}:{{build.branch}}
             </div>
             <p slot="desc" style="color: #666; font-size: 12px;">
               {{build.message}}
