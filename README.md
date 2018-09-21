@@ -1,2 +1,3 @@
 # drone-client
-Drone client for WeChat for Work.
+
+Drone client for mobile.
