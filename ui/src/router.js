@@ -22,6 +22,11 @@ export default new Router({
       path: '/build',
       name: 'build',
       component: () => import('./views/Build.vue')
+    },
+    {
+      path: '/log',
+      name: 'log',
+      component: () => import('./views/Log.vue')
     }
   ]
 })
