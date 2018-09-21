@@ -17,3 +17,5 @@ debug*
 *.db
 package-lock.json
 yarn.lock
+scripts
+drone-client

@@ -47,6 +47,11 @@ func initConfig() {
 // 代理实例
 var simpleHostProxy = httputil.ReverseProxy{
 	Director: func(req *http.Request) {
+		log.Println("droneScheme=", droneScheme)
+		log.Println("droneHost=", droneHost)
+		log.Println("droneToken=", droneToken)
+		log.Println("apiPrefix=", apiPrefix)
+		log.Println("apiTrigger=", apiTrigger)
 		req.URL.Scheme = droneScheme
 		if req.Header.Get("Authorization") == "" && droneToken != "" {
 			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", droneToken))
@@ -54,6 +59,9 @@ var simpleHostProxy = httputil.ReverseProxy{
 		req.URL.Host = droneHost
 		req.URL.Path = strings.Replace(req.URL.Path, fmt.Sprintf("%s%s", apiPrefix, apiTrigger), "/api", 1)
 		req.Host = droneHost
+		log.Println("req.URL.Host=", req.URL.Host)
+		log.Println("req.URL.Path=", req.URL.Path)
+		log.Println("req.Host=", req.Host)
 	},
 }
 
@@ -120,7 +128,7 @@ func getToken() string {
 func main() {
 	defer db.Close()
 	engine := gin.New()
-	engine.Static("/ui", "./ui/dist")
+	engine.Static("/ui", "./ui")
 	vi := engine.Group(apiPrefix)
 	vi.GET("/login", func(c *gin.Context) {
 		token := getToken()
@@ -133,9 +141,9 @@ func main() {
 		}
 		authToken := Get(data["UserId"].(string))
 		if authToken != "" {
-			// c.Redirect(http.StatusMovedPermanently, "/client/home")
+			c.Redirect(http.StatusMovedPermanently, "/ui")
 		} else {
-			// c.Redirect(http.StatusMovedPermanently, "/client/bind")
+			c.Redirect(http.StatusMovedPermanently, "/ui/bind")
 		}
 	})
 	vi.Any(fmt.Sprintf("%s/*api", apiTrigger), func(c *gin.Context) {
