@@ -35,7 +35,7 @@
               <van-button
                 type="primary"
                 size="small"
-                @click="handleRetry(build.number)"
+                @click.stop="handleRetry(build.number)"
                 v-if="build.status !== 'running'"
                 :loading="build.number === loadingBuildId"
                 plain
@@ -46,7 +46,7 @@
               <van-button
                 type="danger"
                 size="small"
-                @click="handleStop(build.number)"
+                @click.stop="handleStop(build.number)"
                 v-if="build.status === 'running'"
                 :loading="build.number === loadingBuildId"
                 plain
