@@ -89,7 +89,6 @@ export default {
       isLoading: false,
       loadingBuildId: null,
       isShow: false,
-      activeNames: ['1'],
       builds: []
     }
   },

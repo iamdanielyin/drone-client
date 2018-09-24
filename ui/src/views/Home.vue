@@ -14,7 +14,15 @@
           </div>
           <router-link v-for="repo in list" :to="{ name: 'build', query: { owner, repo: repo.name } }" :key='repo.id'>
             <van-cell is-link>
-              <span slot="title" style="color: #5E6574; font-size: 16px;">{{repo.name}}</span>
+              <span slot="title" style="color: #5E6574; font-size: 16px; display: flex; align-items: center;">
+                <span style="margin-right: 5px;">{{repo.name}}</span>
+                <template>
+                  <van-icon name="passed" v-if="repo.latest_status === 'success'" style="color: #4dc89a" />
+                  <van-icon name="close" v-else-if="repo.latest_status === 'failure'" style="color: #fc4758" />
+                  <van-loading type="spinner" v-else-if="repo.latest_status === 'running'" style="width: 16px; height: 16px;" />
+                  <van-icon name="clock" v-else style="color: #fdb835" />
+                </template>
+              </span>
             </van-cell>
           </router-link>
         </van-collapse-item>
@@ -29,6 +37,7 @@ import Vue from 'vue'
 import _ from 'lodash'
 import { NavBar, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh, Loading } from 'vant'
 import { getUserRepos } from '@/api/repo'
+import { getUserFeed } from '@/api/user'
 Vue.use(NavBar).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use(CellGroup).use(PullRefresh).use(Loading)
 
 export default {
@@ -46,15 +55,39 @@ export default {
     }
   },
   methods: {
+    combineFeed (repos, feed) {
+      for (const owner in repos) {
+        const ownerRepos = repos[owner]
+        const ownerFeed = feed.filter(item => item.owner === owner)
+        for (const feed of ownerFeed) {
+          for (const repo of ownerRepos) {
+            if (repo.name === feed.name) {
+              repo.latest_status = feed.status
+              repo.latest_finished = feed.finished_at
+              break
+            }
+          }
+        }
+        this.repos = _.cloneDeep(repos)
+      }
+    },
     fetchRepos: async function () {
       this.isLoading = true
       const repos = await getUserRepos()
       this.repos = _.groupBy(repos, 'owner')
-      this.activeNames = _.take(Object.keys(this.repos), 1)
+      if (!this.activeNames) {
+        this.activeNames = _.take(Object.keys(this.repos), 1)
+      }
+      this.feed = await this.fetchUserFeed()
+      this.combineFeed(this.repos, this.feed)
       const $this = this
       _.debounce(() => {
         $this.isLoading = false
       }, 500)()
+    },
+    fetchUserFeed: async function () {
+      const feed = await getUserFeed()
+      return feed
     }
   },
   created: function () {
