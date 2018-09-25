@@ -14,15 +14,23 @@
           </div>
           <router-link v-for="repo in list" :to="{ name: 'build', query: { owner, repo: repo.name } }" :key='repo.id'>
             <van-cell is-link>
-              <span slot="title" style="color: #5E6574; font-size: 16px; display: flex; align-items: center;">
-                <span style="margin-right: 5px;">{{repo.name}}</span>
-                <template>
-                  <van-icon name="passed" v-if="repo.latest_status === 'success'" style="color: #4dc89a" />
-                  <van-icon name="close" v-else-if="repo.latest_status === 'failure'" style="color: #fc4758" />
-                  <van-loading type="spinner" v-else-if="repo.latest_status === 'running'" style="width: 16px; height: 16px;" />
-                  <van-icon name="clock" v-else style="color: #fdb835" />
-                </template>
-              </span>
+              <div slot="title" style="color: #5E6574; font-size: 16px; display: flex; align-items: flex-start; flex-direction: column; justify-content: center;">
+                <div style="display: flex; align-items: center;">
+                  <span style="margin-right: 5px;">{{repo.name}}</span>
+                  <template>
+                    <van-icon name="passed" v-if="repo.latest_status === 'success'" style="color: #4dc89a" />
+                    <van-icon name="close" v-else-if="repo.latest_status === 'failure'" style="color: #fc4758" />
+                    <van-loading type="spinner" v-else-if="repo.latest_status === 'running'" style="width: 16px; height: 16px;" />
+                    <van-icon name="clock" v-else style="color: #fdb835" />
+                  </template>
+                </div>
+                <div>
+                  <span style="color: #bdbdbd; font-size: 12px; margin-right: 5px;">{{repo.latest_finished | unixDateTime}}</span>
+                  <van-tag plain v-if="repo.latest_started && repo.latest_finished">
+                    {{calcTime(repo.latest_started, repo.latest_finished)}}
+                  </van-tag>
+                </div>
+              </div>
             </van-cell>
           </router-link>
         </van-collapse-item>
@@ -35,6 +43,7 @@
 <script>
 import Vue from 'vue'
 import _ from 'lodash'
+import moment from 'moment'
 import { NavBar, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh, Loading } from 'vant'
 import { getUserRepos } from '@/api/repo'
 import { getUserFeed } from '@/api/user'
@@ -55,6 +64,10 @@ export default {
     }
   },
   methods: {
+    calcTime: function (startedAt, finishedAt) {
+      const time = moment.unix(finishedAt).diff(moment.unix(startedAt), 's')
+      return `${time}s`
+    },
     combineFeed (repos, feed) {
       for (const owner in repos) {
         const ownerRepos = repos[owner]
@@ -64,6 +77,7 @@ export default {
             if (repo.name === feed.name) {
               repo.latest_status = feed.status
               repo.latest_finished = feed.finished_at
+              repo.latest_started = feed.started_at
               break
             }
           }

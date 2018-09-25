@@ -14,7 +14,7 @@
         <router-link v-for="build in filteredBuilds" :to="{ name: 'log', query: { owner, repo, build: build.number } }" :key="build.id">
           <van-card currency="">
             <template slot="thumb">
-              <img :src="build.author_avatar" class="van-card__img">
+              <img :src="build.author_avatar" class="van-card__img" style="box-shadow: 0px 0px 4px 0px rgba(0,0,0,0.1); border-radius: 4px;">
             </template>
             <div slot="title" class="van-card__title" style="display: flex; align-items: center;">
               <span style="margin-right: 8px; display: flex; align-items: center;">
