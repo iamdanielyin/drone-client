@@ -109,3 +109,8 @@ export default {
   }
 }
 </script>
+<style scoped lang="less">
+  :global(.van-pull-refresh__track) {
+    min-height: calc(100vh - 46px);
+  }
+</style>
