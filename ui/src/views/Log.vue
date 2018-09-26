@@ -103,7 +103,7 @@ export default {
       this.isLoading = true
       this.buildInfo = await getReposBuildInfo(this.owner, this.repo, this.build)
       this.procs = _.get(this.buildInfo, 'procs[0].children', [])
-      this.buildLogsNames = _.get(this.procs.find(proc => proc.state === 'running'), 'pid') || _.head(this.procs.map(item => item.pid))
+      this.buildLogsNames = _.get(this.procs.find(proc => proc.state === 'running'), 'pid') || _.tail(this.procs.map(item => item.pid))
       await this.handleLogChange(this.buildLogsNames)
       const $this = this
       _.debounce(() => {
