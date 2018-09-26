@@ -11,8 +11,8 @@
       <van-collapse v-model='activeNames'>
         <van-collapse-item name='build-queue' style="padding-bottom: 10px;">
           <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
-            <span>Latest Queue</span>
-            <van-tag plain type="primary">{{runningFeedCount}}</van-tag>
+            <span>Building Queue...</span>
+            <van-tag plain type="primary">{{runningFeed.length}}</van-tag>
           </div>
           <router-link v-for="item in runningFeed" :to="{ name: 'log', query: { owner: item.owner, repo: item.name, build: item.number } }" :key="item.number">
             <van-cell is-link>
@@ -35,7 +35,7 @@
               </div>
             </van-cell>
           </router-link>
-          <p v-show="!runningFeedCount" class="noData">No builds.</p>
+          <p v-show="!runningFeed.length" class="noData">No builds.</p>
         </van-collapse-item>
         <van-collapse-item v-for="(list, owner) in repos" :name='owner' :key='owner'>
           <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
@@ -67,6 +67,7 @@
       </van-collapse>
     </van-pull-refresh>
     <p v-show="noData" class="noData">No data.</p>
+    <p class="version">0.0.12</p>
   </div>
 </template>
 
@@ -98,20 +99,15 @@ export default {
     },
     runningFeed: function () {
       return this.feed.filter(item => item.status === 'running')
-    },
-    runningFeedCount: function () {
-      return this.runningFeed.length
     }
   },
   methods: {
     autoRefresh (restart = true) {
       if (this.fetchInterval) {
         window.clearInterval(this.fetchInterval)
-        console.log('Home', 'clearFetchInterval')
       }
       if (restart === true) {
-        this.fetchInterval = window.setInterval(this.fetchRepos, 8 * 1000)
-        console.log('Home', 'restartFetchInterval')
+        this.fetchInterval = window.setInterval(this.fetchRepos.bind(this, undefined, false), 8 * 1000)
       } else {
         this.fetchInterval = null
       }
@@ -143,8 +139,10 @@ export default {
         this.repos = _.cloneDeep(repos)
       }
     },
-    fetchRepos: async function (query = { all: true }) {
-      this.isLoading = true
+    fetchRepos: async function (query = { all: true }, needLoading = true) {
+      if (needLoading === true) {
+        this.isLoading = true
+      }
       this.rawRepos = await getUserRepos(query)
       const repos = this.rawRepos.filter(item => item.active === true)
       this.reposTotal = repos.length
@@ -178,5 +176,14 @@ export default {
 <style scoped lang="less">
   :global(.van-pull-refresh__track) {
     min-height: calc(100vh - 46px);
+  }
+  .version {
+    text-align: center;
+    color: #BDC6D2;
+    font-size: 14px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: -1;
   }
 </style>

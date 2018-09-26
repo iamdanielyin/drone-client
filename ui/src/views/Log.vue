@@ -2,13 +2,16 @@
 <template>
   <div class="bind">
     <van-nav-bar
-      :title="this.repo + ':' + this.build  || 'Build Logs'"
-      left-arrow
       fixed
       right-text="Copy"
-      @click-left='$router.back()'
       @click-right="handleCopyImage"
     >
+      <div slot="title">
+        <router-link :to="{ name: 'build', query: { owner: this.owner, repo: this.repo } }" style="color: #4A79DC; display: inline-block;">
+          {{this.repo}}
+        </router-link>
+        <template>{{':' + this.build  || 'Build Logs'}}</template>
+      </div>
     </van-nav-bar>
     <p v-show="noData" class="noData">No data.</p>
     <van-pull-refresh v-model="isLoading" @refresh="fetchBuildInfo" style="padding-top: 46px;">
@@ -80,11 +83,9 @@ export default {
     autoRefresh (restart = true) {
       if (this.fetchInterval) {
         window.clearInterval(this.fetchInterval)
-        console.log('Log', 'clearFetchInterval')
       }
       if (restart === true) {
-        this.fetchInterval = window.setInterval(this.fetchBuildInfo, 5 * 1000)
-        console.log('Log', 'restartFetchInterval')
+        this.fetchInterval = window.setInterval(this.fetchBuildInfo.bind(this, false), 5 * 1000)
       } else {
         this.fetchInterval = null
       }
@@ -93,14 +94,16 @@ export default {
       const time = moment.unix(finishedAt).diff(moment.unix(startedAt), 's')
       return `${time}s`
     },
-    fetchBuildInfo: async function () {
+    fetchBuildInfo: async function (needLoading = true) {
       this.owner = this.$route.query.owner
       this.repo = this.$route.query.repo
       this.build = this.$route.query.build
       if (!this.owner || !this.repo || !this.build) {
         return
       }
-      this.isLoading = true
+      if (needLoading === true) {
+        this.isLoading = true
+      }
       this.buildInfo = await getReposBuildInfo(this.owner, this.repo, this.build)
       this.procs = _.get(this.buildInfo, 'procs[0].children', [])
       this.buildLogsNames = _.get(this.procs.find(proc => proc.state === 'running'), 'pid') || _.tail(this.procs.map(item => item.pid))

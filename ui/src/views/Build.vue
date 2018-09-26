@@ -3,11 +3,11 @@
     <van-nav-bar
       :title="this.repo + ' (' + this.filteredBuilds.length + ') '"
       :right-text="filterBranch || 'Branches'"
-      left-arrow
       fixed
-      @click-left='$router.back()'
+      @click-left="$router.push('/')"
       @click-right="toggleShowBranch"
     >
+      <van-icon name="home" slot="left" />
     </van-nav-bar>
     <van-pull-refresh v-model="isLoading" @refresh="fetchBuilds" style="padding-top: 46px;">
       <van-list>
@@ -63,14 +63,14 @@
         </router-link>
       </van-list>
     </van-pull-refresh>
-    <p v-show="noData" class="noData">No data.</p>
+    <p v-show="!builds.length" class="noData">No data.</p>
     <van-actionsheet
       v-model="showBranch"
       :actions="branches"
       @select="handleChangeBranch"
     />
     <div class="intelligentFiltered">
-      <van-switch v-model="intelligentFiltered" size="24px" @change="handleIntelligentFilteredChange" />
+      <van-switch v-model="intelligentFiltered" @change="handleIntelligentFilteredChange" />
     </div>
   </div>
 </template>
@@ -106,9 +106,6 @@ export default {
       })
       return _.uniqBy(arr, 'name')
     },
-    noData: function () {
-      return this.builds.length === 0
-    },
     filteredBuilds: function () {
       if (!this.filterBranch) {
         return this.builds
@@ -121,11 +118,9 @@ export default {
     autoRefresh (restart = true) {
       if (this.fetchInterval) {
         window.clearInterval(this.fetchInterval)
-        console.log('Build', 'clearFetchInterval')
       }
       if (restart === true) {
-        this.fetchInterval = window.setInterval(this.fetchBuilds, 8 * 1000)
-        console.log('Build', 'restartFetchInterval')
+        this.fetchInterval = window.setInterval(this.fetchBuilds.bind(this, undefined, false), 8 * 1000)
       } else {
         this.fetchInterval = null
       }
@@ -151,8 +146,10 @@ export default {
       builds = builds.filter(item => !item.ref || item.event !== 'push' || (item.event === 'push' && item.ref.endsWith('master')))
       return builds
     },
-    fetchBuilds: async function (first) {
-      this.isLoading = true
+    fetchBuilds: async function (first, needLoading = true) {
+      if (needLoading === true) {
+        this.isLoading = true
+      }
       this.owner = this.$route.query.owner
       this.repo = this.$route.query.repo
       if (!this.owner || !this.repo) {
@@ -174,13 +171,13 @@ export default {
       this.loadingBuildId = buildId
       await postReposBuilds(this.owner, this.repo, buildId)
       this.loadingBuildId = null
-      await _.debounce(this.fetchBuilds, 800)()
+      await _.debounce(this.fetchBuilds, 800)(undefined, false)
     },
     handleStop: async function (buildId) {
       this.loadingBuildId = buildId
       await deleteReposBuilds(this.owner, this.repo, buildId)
       this.loadingBuildId = null
-      await _.debounce(this.fetchBuilds, 1000)()
+      await _.debounce(this.fetchBuilds, 1000)(undefined, false)
     }
   },
   created: function () {
