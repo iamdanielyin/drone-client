@@ -64,15 +64,31 @@ export default {
       buildLogsNames: null,
       buildInfo: {},
       buildLogs: [],
-      procs: []
+      procs: [],
+      fetchInterval: null
     }
   },
   computed: {
     noData: function () {
       return this.procs.length === 0
+    },
+    needAutoFetch: function () {
+      return !!this.procs.find(proc => proc.state === 'running')
     }
   },
   methods: {
+    autoRefresh (restart = true) {
+      if (this.fetchInterval) {
+        window.clearInterval(this.fetchInterval)
+        console.log('Log', 'clearFetchInterval')
+      }
+      if (restart === true) {
+        this.fetchInterval = window.setInterval(this.fetchBuildInfo, 5 * 1000)
+        console.log('Log', 'restartFetchInterval')
+      } else {
+        this.fetchInterval = null
+      }
+    },
     calcTime: function (startedAt, finishedAt) {
       const time = moment.unix(finishedAt).diff(moment.unix(startedAt), 's')
       return `${time}s`
@@ -87,14 +103,15 @@ export default {
       this.isLoading = true
       this.buildInfo = await getReposBuildInfo(this.owner, this.repo, this.build)
       this.procs = _.get(this.buildInfo, 'procs[0].children', [])
-      if (!this.buildLogsNames) {
-        this.buildLogsNames = _.head(this.procs.map(item => item.pid))
-      }
+      this.buildLogsNames = _.get(this.procs.find(proc => proc.state === 'running'), 'pid') || _.head(this.procs.map(item => item.pid))
       await this.handleLogChange(this.buildLogsNames)
       const $this = this
       _.debounce(() => {
         $this.isLoading = false
       }, 500)()
+      if (this.needAutoFetch !== true) {
+        this.autoRefresh(false)
+      }
     },
     handleLogChange: async function (activeName) {
       activeName = Array.isArray(activeName) ? _.get(activeName, '[0]') : activeName
@@ -137,6 +154,15 @@ export default {
   },
   watch: {
     '$route': 'fetchBuildInfo'
+  },
+  beforeRouteEnter: function (to, from, next) {
+    next(vm => {
+      vm.autoRefresh()
+    })
+  },
+  beforeRouteLeave: function (to, from, next) {
+    this.autoRefresh(false)
+    next()
   }
 }
 </script>

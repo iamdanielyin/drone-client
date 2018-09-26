@@ -69,6 +69,9 @@
       :actions="branches"
       @select="handleChangeBranch"
     />
+    <div class="intelligentFiltered">
+      <van-switch v-model="intelligentFiltered" size="24px" @change="handleIntelligentFilteredChange" />
+    </div>
   </div>
 </template>
 
@@ -76,20 +79,23 @@
 import Vue from 'vue'
 import moment from 'moment'
 import _ from 'lodash'
-import { NavBar, List, Panel, Card, Icon, Button, Tag, PullRefresh, Actionsheet, Loading } from 'vant'
+import { NavBar, List, Panel, Card, Icon, Button, Tag, PullRefresh, Actionsheet, Loading, Switch } from 'vant'
 import { getReposBuilds, postReposBuilds, deleteReposBuilds } from '@/api/build'
-Vue.use(NavBar).use(List).use(Panel).use(Card).use(Icon).use(Button).use(Tag).use(PullRefresh).use(Actionsheet).use(Loading)
+Vue.use(NavBar).use(List).use(Panel).use(Card).use(Icon).use(Button).use(Tag).use(PullRefresh).use(Actionsheet).use(Loading).use(Switch)
 
 export default {
   name: 'home',
   data () {
     return {
+      intelligentFiltered: true,
       showBranch: false,
       filterBranch: null,
       isLoading: false,
       loadingBuildId: null,
       isShow: false,
-      builds: []
+      rawBuilds: [],
+      builds: [],
+      fetchInterval: null
     }
   },
   computed: {
@@ -112,6 +118,21 @@ export default {
     }
   },
   methods: {
+    autoRefresh (restart = true) {
+      if (this.fetchInterval) {
+        window.clearInterval(this.fetchInterval)
+        console.log('Build', 'clearFetchInterval')
+      }
+      if (restart === true) {
+        this.fetchInterval = window.setInterval(this.fetchBuilds, 8 * 1000)
+        console.log('Build', 'restartFetchInterval')
+      } else {
+        this.fetchInterval = null
+      }
+    },
+    handleIntelligentFilteredChange: function () {
+      this.builds = this.intelligentFiltering(this.rawBuilds)
+    },
     toggleShowBranch: function () {
       this.showBranch = !this.showBranch
     },
@@ -123,20 +144,31 @@ export default {
       const time = moment.unix(finishedAt).diff(moment.unix(startedAt), 's')
       return `${time}s`
     },
-    fetchBuilds: async function () {
+    intelligentFiltering (builds) {
+      if (this.intelligentFiltered !== true) {
+        return builds
+      }
+      builds = builds.filter(item => !item.ref || item.event !== 'push' || (item.event === 'push' && item.ref.endsWith('master')))
+      return builds
+    },
+    fetchBuilds: async function (first) {
       this.isLoading = true
       this.owner = this.$route.query.owner
       this.repo = this.$route.query.repo
       if (!this.owner || !this.repo) {
         return
       }
-      this.builds = await getReposBuilds(this.owner, this.repo)
+      this.rawBuilds = await getReposBuilds(this.owner, this.repo)
+      this.builds = this.intelligentFiltering(this.rawBuilds)
       const $this = this
       _.debounce(() => {
         $this.isLoading = false
         $this.loadingBuildId = null
         // $this.filterBranch = null
       }, 500)()
+      if (first === true) {
+        this.autoRefresh()
+      }
     },
     handleRetry: async function (buildId) {
       this.loadingBuildId = buildId
@@ -152,10 +184,19 @@ export default {
     }
   },
   created: function () {
-    this.fetchBuilds()
+    this.fetchBuilds(true)
   },
   watch: {
     '$route': 'fetchBuilds'
+  },
+  beforeRouteEnter: function (to, from, next) {
+    next(vm => {
+      vm.autoRefresh()
+    })
+  },
+  beforeRouteLeave: function (to, from, next) {
+    this.autoRefresh(false)
+    next()
   }
 }
 </script>
@@ -164,6 +205,15 @@ export default {
     :global(.van-card) {
       height: auto;
       min-height: 100px;
+    }
+    .intelligentFiltered{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      bottom: 30px;
+      right: 20px;
+      font-size: 16px;
     }
   }
 </style>

@@ -1,12 +1,42 @@
 <template>
   <div class='home'>
     <van-nav-bar
-      title="Repo List"
+      :title="'Repo List' + ' (' + this.reposTotal + ') '"
+      right-text="Sync"
+      @click-right="handleSync"
       fixed
     >
     </van-nav-bar>
     <van-pull-refresh v-model="isLoading" @refresh="fetchRepos" style="padding-top: 46px;">
       <van-collapse v-model='activeNames'>
+        <van-collapse-item name='build-queue' style="padding-bottom: 10px;">
+          <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
+            <span>Latest Queue</span>
+            <van-tag plain type="primary">{{runningFeedCount}}</van-tag>
+          </div>
+          <router-link v-for="item in runningFeed" :to="{ name: 'log', query: { owner: item.owner, repo: item.name, build: item.number } }" :key="item.number">
+            <van-cell is-link>
+              <div slot="title" style="color: #5E6574; font-size: 16px; display: flex; align-items: flex-start; flex-direction: column; justify-content: center;">
+                <div style="display: flex; align-items: center;">
+                  <span style="margin-right: 5px;">{{item.full_name}}</span>
+                  <template>
+                    <van-icon name="passed" v-if="item.status === 'success'" style="color: #4dc89a" />
+                    <van-icon name="close" v-else-if="item.status === 'failure'" style="color: #fc4758" />
+                    <van-loading type="spinner" v-else-if="item.status === 'running'" style="width: 16px; height: 16px;" />
+                    <van-icon name="clock" v-else style="color: #fdb835" />
+                  </template>
+                </div>
+                <div v-if="item.started_at && item.finished_at">
+                  <span style="color: #bdbdbd; font-size: 12px; margin-right: 5px;">{{item.finished_at | unixDateTime}}</span>
+                  <van-tag plain>
+                    {{calcTime(item.started_at, item.finished_at)}}
+                  </van-tag>
+                </div>
+              </div>
+            </van-cell>
+          </router-link>
+          <p v-show="!runningFeedCount" class="noData">No builds.</p>
+        </van-collapse-item>
         <van-collapse-item v-for="(list, owner) in repos" :name='owner' :key='owner'>
           <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
             {{owner}}
@@ -53,17 +83,45 @@ export default {
   name: 'home',
   data () {
     return {
+      feed: [],
       isLoading: false,
-      activeNames: null,
-      repos: {}
+      fetchInterval: null,
+      activeNames: ['build-queue'],
+      rawRepos: [],
+      repos: {},
+      reposTotal: 0
     }
   },
   computed: {
     noData: function () {
       return Object.keys(this.repos).length === 0
+    },
+    runningFeed: function () {
+      return this.feed.filter(item => item.status === 'running')
+    },
+    runningFeedCount: function () {
+      return this.runningFeed.length
     }
   },
   methods: {
+    autoRefresh (restart = true) {
+      if (this.fetchInterval) {
+        window.clearInterval(this.fetchInterval)
+        console.log('Home', 'clearFetchInterval')
+      }
+      if (restart === true) {
+        this.fetchInterval = window.setInterval(this.fetchRepos, 8 * 1000)
+        console.log('Home', 'restartFetchInterval')
+      } else {
+        this.fetchInterval = null
+      }
+    },
+    handleSync: function () {
+      this.fetchRepos({
+        all: true,
+        flush: true
+      })
+    },
     calcTime: function (startedAt, finishedAt) {
       const time = moment.unix(finishedAt).diff(moment.unix(startedAt), 's')
       return `${time}s`
@@ -85,13 +143,12 @@ export default {
         this.repos = _.cloneDeep(repos)
       }
     },
-    fetchRepos: async function () {
+    fetchRepos: async function (query = { all: true }) {
       this.isLoading = true
-      const repos = await getUserRepos()
+      this.rawRepos = await getUserRepos(query)
+      const repos = this.rawRepos.filter(item => item.active === true)
+      this.reposTotal = repos.length
       this.repos = _.groupBy(repos, 'owner')
-      if (!this.activeNames) {
-        this.activeNames = _.take(Object.keys(this.repos), 1)
-      }
       this.feed = await this.fetchUserFeed()
       this.combineFeed(this.repos, this.feed)
       const $this = this
@@ -106,6 +163,15 @@ export default {
   },
   created: function () {
     this.fetchRepos()
+  },
+  beforeRouteEnter: function (to, from, next) {
+    next(vm => {
+      vm.autoRefresh()
+    })
+  },
+  beforeRouteLeave: function (to, from, next) {
+    this.autoRefresh(false)
+    next()
   }
 }
 </script>
