@@ -8,6 +8,7 @@
     >
     </van-nav-bar>
     <van-pull-refresh v-model="isLoading" @refresh="fetchRepos" style="padding-top: 46px;">
+      <van-search placeholder="Search ..." v-model="searchValue" @input="handleSearch" />
       <van-collapse v-model='activeNames'>
         <van-collapse-item name='build-queue' style="padding-bottom: 10px;">
           <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
@@ -37,7 +38,7 @@
           </router-link>
           <p v-show="!runningFeed.length" class="noData">No builds.</p>
         </van-collapse-item>
-        <van-collapse-item v-for="(list, owner) in repos" :name='owner' :key='owner'>
+        <van-collapse-item v-for="(list, owner) in filteredRepos" :name='owner' :key='owner' v-if="list.length" >
           <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
             {{owner}}
             <van-tag plain type="primary">{{list.length}}</van-tag>
@@ -66,8 +67,8 @@
         </van-collapse-item>
       </van-collapse>
     </van-pull-refresh>
-    <p v-show="noData" class="noData">No data.</p>
-    <p class="version">0.0.12</p>
+    <p v-show="Object.keys(repos).length === 0" class="noData">No data.</p>
+    <p class="version">0.0.13</p>
   </div>
 </template>
 
@@ -75,15 +76,16 @@
 import Vue from 'vue'
 import _ from 'lodash'
 import moment from 'moment'
-import { NavBar, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh, Loading } from 'vant'
+import { NavBar, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh, Loading, Search } from 'vant'
 import { getUserRepos } from '@/api/repo'
 import { getUserFeed } from '@/api/user'
-Vue.use(NavBar).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use(CellGroup).use(PullRefresh).use(Loading)
+Vue.use(NavBar).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use(CellGroup).use(PullRefresh).use(Loading).use(Search)
 
 export default {
   name: 'home',
   data () {
     return {
+      searchValue: null,
       feed: [],
       isLoading: false,
       fetchInterval: null,
@@ -94,14 +96,33 @@ export default {
     }
   },
   computed: {
-    noData: function () {
-      return Object.keys(this.repos).length === 0
-    },
     runningFeed: function () {
-      return this.feed.filter(item => item.status === 'running')
+      return this.feed.filter(item => {
+        if (item.status === 'running') {
+          if (this.searchValue) {
+            return new RegExp(this.searchValue, 'i').test(item.full_name)
+          } else {
+            return true
+          }
+        } else {
+          return false
+        }
+      })
+    },
+    filteredRepos () {
+      return _.mapValues(this.repos, list => {
+        if (this.searchValue) {
+          return list.filter(item => new RegExp(this.searchValue, 'i').test(item.full_name))
+        } else {
+          return list
+        }
+      })
     }
   },
   methods: {
+    handleSearch (v) {
+      console.log(v)
+    },
     autoRefresh (restart = true) {
       if (this.fetchInterval) {
         window.clearInterval(this.fetchInterval)
