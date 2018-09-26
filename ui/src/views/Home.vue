@@ -68,7 +68,7 @@
       </van-collapse>
     </van-pull-refresh>
     <p v-show="Object.keys(repos).length === 0" class="noData">No data.</p>
-    <p class="version">0.0.13</p>
+    <p class="version">0.0.14</p>
   </div>
 </template>
 
