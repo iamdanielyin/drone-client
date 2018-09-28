@@ -12,8 +12,8 @@
       <van-collapse v-model='activeNames'>
         <van-collapse-item name='build-queue' style="padding-bottom: 10px;">
           <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
-            <span>Building Queue...</span>
-            <van-tag plain type="primary">{{runningFeed.length}}</van-tag>
+            <template>Building Queue</template>
+            <van-tag plain>{{runningFeed.length}}</van-tag>
           </div>
           <router-link v-for="item in runningFeed" :to="{ name: 'log', query: { owner: item.owner, repo: item.name, build: item.number } }" :key="item.number">
             <van-cell is-link>
@@ -41,7 +41,7 @@
         <van-collapse-item v-for="(list, owner) in filteredRepos" :name='owner' :key='owner' v-if="list.length" >
           <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
             {{owner}}
-            <van-tag plain type="primary">{{list.length}}</van-tag>
+            <van-tag plain>{{list.length}}</van-tag>
           </div>
           <router-link v-for="repo in list" :to="{ name: 'build', query: { owner, repo: repo.name } }" :key='repo.id'>
             <van-cell is-link>
@@ -68,7 +68,7 @@
       </van-collapse>
     </van-pull-refresh>
     <p v-show="Object.keys(repos).length === 0" class="noData">No data.</p>
-    <p class="version">0.0.14</p>
+    <p class="version">0.0.15</p>
   </div>
 </template>
 

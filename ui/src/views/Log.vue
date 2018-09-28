@@ -1,6 +1,6 @@
 
 <template>
-  <div class="bind">
+  <div class="log">
     <van-nav-bar
       fixed
       right-text="Copy"
@@ -47,6 +47,25 @@
         </van-collapse-item>
       </van-collapse>
     </van-pull-refresh>
+    <div class="logActions">
+      <van-button
+        size="small"
+        @click.stop.prevent="handleRetry"
+        v-if="buildInfo.status !== 'running'"
+        style="border: 1px solid rgb(74, 121, 220); color: #4A79DC;"
+      >
+        RETRY
+      </van-button>
+      <van-button
+        type="danger"
+        size="small"
+        @click.stop.prevent="handleStop"
+        v-if="buildInfo.status === 'running'"
+        style="border: 1px solid #F25E56;"
+      >
+        STOP
+      </van-button>
+    </div>
   </div>
 </template>
 <script>
@@ -54,9 +73,9 @@ import Vue from 'vue'
 import moment from 'moment'
 import _ from 'lodash'
 import VueClipboard from 'vue-clipboard2'
-import { NavBar, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh, Loading, Toast } from 'vant'
-import { getReposBuildInfo, getReposBuildInfoLogs } from '@/api/build'
-Vue.use(NavBar).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use(CellGroup).use(PullRefresh).use(Loading).use(Toast).use(VueClipboard)
+import { NavBar, Icon, Collapse, CollapseItem, Cell, Tag, CellGroup, PullRefresh, Loading, Toast, Button } from 'vant'
+import { getReposBuildInfo, getReposBuildInfoLogs, postReposBuilds, deleteReposBuilds } from '@/api/build'
+Vue.use(NavBar).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use(CellGroup).use(PullRefresh).use(Loading).use(Toast).use(VueClipboard).use(Button)
 VueClipboard.config.autoSetContainer = true
 
 export default {
@@ -80,6 +99,14 @@ export default {
     }
   },
   methods: {
+    handleRetry: async function () {
+      await postReposBuilds(this.owner, this.repo, this.build)
+      await _.debounce(this.fetchBuildInfo, 200)(false)
+    },
+    handleStop: async function () {
+      await deleteReposBuilds(this.owner, this.repo, this.build)
+      await _.debounce(this.fetchBuildInfo, 200)(false)
+    },
     autoRefresh (restart = true) {
       if (this.fetchInterval) {
         window.clearInterval(this.fetchInterval)
@@ -170,24 +197,32 @@ export default {
 }
 </script>
 <style scoped lang="less">
-  .logContent {
-    :global(.van-collapse-item__wrapper) {
-      background:#eceff1;
-      font-size: 12px;
-      color: #212121;
+  .log {
+    .logContent {
+      :global(.van-collapse-item__wrapper) {
+        background:#eceff1;
+        font-size: 12px;
+        color: #212121;
+      }
+      :global(.van-collapse-item__content) {
+        background:transparent;
+      }
+      .logContentNo {
+        padding-right: 10px;
+        min-width: 20px;
+        color: rgba(0, 0, 0, 0.3);
+      }
+      .logContentOut {
+        min-width: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
     }
-    :global(.van-collapse-item__content) {
-      background:transparent;
-    }
-    .logContentNo {
-      padding-right: 10px;
-      min-width: 20px;
-      color: rgba(0, 0, 0, 0.3);
-    }
-    .logContentOut {
-      min-width: 0;
-      white-space: pre-wrap;
-      word-wrap: break-word;
+    .logActions {
+      position: fixed;
+      bottom: 30px;
+      right: 20px;
+      font-size: 16px;
     }
   }
 </style>
