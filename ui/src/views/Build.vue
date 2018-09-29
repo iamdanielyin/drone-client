@@ -87,7 +87,7 @@ export default {
   name: 'home',
   data () {
     return {
-      intelligentFiltered: true,
+      intelligentFiltered: false,
       showBranch: false,
       filterBranch: null,
       isLoading: false,
