@@ -3,11 +3,11 @@
     <van-nav-bar
       :title="this.repo + ' (' + this.filteredBuilds.length + ') '"
       :right-text="filterBranch || 'Branches'"
+      left-arrow
       fixed
-      @click-left="$router.push('/')"
+      @click-left="$router.back()"
       @click-right="toggleShowBranch"
     >
-      <van-icon name="home" slot="left" />
     </van-nav-bar>
     <van-pull-refresh v-model="isLoading" @refresh="fetchBuilds" style="padding-top: 46px;">
       <van-list>
@@ -17,8 +17,9 @@
               <img :src="build.author_avatar" class="van-card__img" style="box-shadow: 0px 0px 4px 0px rgba(0,0,0,0.1); border-radius: 4px;">
             </template>
             <div slot="title" class="van-card__title" style="display: flex; align-items: center;">
-              <span style="margin-right: 8px; display: flex; align-items: center;">
-                <span style="margin-right: 5px;">{{build.number}}</span>
+              <span style="margin-right: 5px;">{{build.number}}</span>
+              {{build.author}}:{{build.branch}}
+              <span style="margin-left: 5px; display: flex; align-items: center;">
                 <template>
                   <van-icon name="passed" v-if="build.status === 'success'" style="color: #4dc89a" />
                   <van-icon name="close" v-else-if="build.status === 'failure'" style="color: #fc4758" />
@@ -26,7 +27,6 @@
                   <van-icon name="clock" v-else style="color: #fdb835" />
                 </template>
               </span>
-              {{build.author}}:{{build.branch}}
             </div>
             <p slot="desc" style="color: #666; font-size: 12px;">
               {{build.message}}

@@ -3,15 +3,12 @@
   <div class="log">
     <van-nav-bar
       fixed
+      :title="(repo + ':' + build) || 'Build Logs'"
       right-text="Copy"
+      left-arrow
+      @click-left="$router.back()"
       @click-right="handleCopyImage"
     >
-      <div slot="title">
-        <router-link :to="{ name: 'build', query: { owner: this.owner, repo: this.repo } }" style="color: #4A79DC; display: inline-block;">
-          {{this.repo}}
-        </router-link>
-        <template>{{':' + this.build  || 'Build Logs'}}</template>
-      </div>
     </van-nav-bar>
     <p v-show="noData" class="noData">No data.</p>
     <van-pull-refresh v-model="isLoading" @refresh="fetchBuildInfo" style="padding-top: 46px;">

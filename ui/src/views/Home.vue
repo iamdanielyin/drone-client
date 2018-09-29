@@ -10,10 +10,10 @@
     <van-pull-refresh v-model="isLoading" @refresh="fetchRepos" style="padding-top: 46px;">
       <van-search placeholder="Search ..." v-model="searchValue" @input="handleSearch" />
       <van-collapse v-model='activeNames'>
-        <van-collapse-item name='build-queue' style="padding-bottom: 10px;">
-          <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
+        <van-collapse-item name='build-queue'>
+          <div slot="title">
             <template>Building Queue</template>
-            <van-tag plain>{{runningFeed.length}}</van-tag>
+            <van-tag style="margin-left: 5px;">{{runningFeed.length}}</van-tag>
           </div>
           <router-link
             v-for="item in runningFeed"
@@ -21,7 +21,7 @@
             :key="item.number"
           >
             <van-cell is-link>
-              <div slot="title" style="color: #5E6574; font-size: 16px; display: flex; align-items: flex-start; flex-direction: column; justify-content: center;">
+              <div slot="title" style="color: #5E6574; display: flex; align-items: flex-start; flex-direction: column; justify-content: center;">
                 <div style="display: flex; align-items: center;">
                   <span style="margin-right: 5px;">{{item.full_name}}</span>
                   <template>
@@ -43,13 +43,13 @@
           <p v-show="!runningFeed.length" class="noData">No builds.</p>
         </van-collapse-item>
         <van-collapse-item v-for="(list, owner) in filteredRepos" :name='owner' :key='owner' v-if="list.length" >
-          <div slot="title" style="color: #474D5A; font-size: 16px; font-weight: bold;">
+          <div slot="title">
             {{owner}}
-            <van-tag plain>{{list.length}}</van-tag>
+            <van-tag>{{list.length}}</van-tag>
           </div>
           <router-link v-for="repo in list" :to="{ name: 'build', query: { owner, repo: repo.name } }" :key='repo.id'>
             <van-cell is-link>
-              <div slot="title" style="color: #5E6574; font-size: 16px; display: flex; align-items: flex-start; flex-direction: column; justify-content: center;">
+              <div slot="title" style="color: #5E6574; display: flex; align-items: flex-start; flex-direction: column; justify-content: center;">
                 <div style="display: flex; align-items: center;">
                   <span style="margin-right: 5px;">{{repo.name}}</span>
                   <template>
@@ -200,16 +200,21 @@ export default {
 }
 </script>
 <style scoped lang="less">
-  :global(.van-pull-refresh__track) {
-    min-height: calc(100vh - 46px);
-  }
-  .version {
-    text-align: center;
-    color: #BDC6D2;
-    font-size: 14px;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    z-index: -1;
+  .home {
+    :global(.van-pull-refresh__track) {
+      min-height: calc(100vh - 46px);
+    }
+    :global(.van-collapse-item__content) {
+      padding: 0 10px;
+    }
+    .version {
+      text-align: center;
+      color: #BDC6D2;
+      font-size: 14px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      z-index: -1;
+    }
   }
 </style>
