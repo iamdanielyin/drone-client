@@ -52,6 +52,7 @@
         size="small"
         @click.stop.prevent="handleRetry"
         v-if="buildInfo.status !== 'running'"
+        :loading="fetchLoading"
         style="border: 1px solid rgb(74, 121, 220); color: #4A79DC;"
       >
         RETRY
@@ -61,6 +62,7 @@
         size="small"
         @click.stop.prevent="handleStop"
         v-if="buildInfo.status === 'running'"
+        :loading="fetchLoading"
         style="border: 1px solid #F25E56;"
       >
         STOP
@@ -83,6 +85,7 @@ export default {
   data () {
     return {
       isLoading: false,
+      fetchLoading: false,
       buildLogsNames: null,
       buildInfo: {},
       buildLogs: [],
@@ -100,12 +103,16 @@ export default {
   },
   methods: {
     handleRetry: async function () {
+      this.fetchLoading = true
       await postReposBuilds(this.owner, this.repo, this.build)
-      await _.debounce(this.fetchBuildInfo, 200)(false)
+      await this.fetchBuildInfo(false)
+      this.fetchLoading = false
     },
     handleStop: async function () {
+      this.fetchLoading = true
       await deleteReposBuilds(this.owner, this.repo, this.build)
-      await _.debounce(this.fetchBuildInfo, 200)(false)
+      await this.fetchBuildInfo(false)
+      this.fetchLoading = false
     },
     autoRefresh (restart = true) {
       if (this.fetchInterval) {

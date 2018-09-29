@@ -68,7 +68,7 @@
       </van-collapse>
     </van-pull-refresh>
     <p v-show="Object.keys(repos).length === 0" class="noData">No data.</p>
-    <p class="version">0.0.15</p>
+    <p class="version">{{version}}</p>
   </div>
 </template>
 
@@ -182,6 +182,7 @@ export default {
   },
   created: function () {
     this.fetchRepos()
+    this.version = process.env.VUE_APP_VERSION
   },
   beforeRouteEnter: function (to, from, next) {
     next(vm => {
