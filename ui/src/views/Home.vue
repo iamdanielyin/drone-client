@@ -15,7 +15,11 @@
             <template>Building Queue</template>
             <van-tag plain>{{runningFeed.length}}</van-tag>
           </div>
-          <router-link v-for="item in runningFeed" :to="{ name: 'log', query: { owner: item.owner, repo: item.name, build: item.number } }" :key="item.number">
+          <router-link
+            v-for="item in runningFeed"
+            :to="{ name: 'log', query: { owner: item.owner, repo: item.name, build: item.number } }"
+            :key="item.number"
+          >
             <van-cell is-link>
               <div slot="title" style="color: #5E6574; font-size: 16px; display: flex; align-items: flex-start; flex-direction: column; justify-content: center;">
                 <div style="display: flex; align-items: center;">
@@ -97,8 +101,8 @@ export default {
   },
   computed: {
     runningFeed: function () {
-      return this.feed.filter(item => {
-        if (item.status === 'running') {
+      return _.sortBy(this.feed.filter(item => {
+        if (['pending', 'running'].includes(item.status)) {
           if (this.searchValue) {
             return new RegExp(this.searchValue, 'i').test(item.full_name)
           } else {
@@ -107,7 +111,7 @@ export default {
         } else {
           return false
         }
-      })
+      }), 'started_at')
     },
     filteredRepos () {
       return _.mapValues(this.repos, list => {
