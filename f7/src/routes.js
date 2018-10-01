@@ -1,18 +1,36 @@
-import Home from './views/Home.vue'
-import About from './views/About.vue'
-import Login from './views/Login.vue'
+/**
+ * Async Lazy Components
+ * @param {Array} routes app routes
+ */
+function asyncLazy (routes) {
+  return routes.map(item => {
+    const vueComponent = item.component
+    item.async = (routeTo, routeFrom, resolve, reject) => {
+      vueComponent().then((vc) => {
+        resolve({ component: vc.default })
+      })
+    }
+    delete item.component
+    return item
+  })
+}
 
-export default [
+const routes = asyncLazy([
   {
+    name: 'home',
     path: '/',
-    component: Home
+    component: () => import('./views/Home.vue')
   },
   {
+    name: 'about',
     path: '/about',
-    component: About
+    component: () => import('./views/About.vue')
   },
   {
+    name: 'login',
     path: '/login',
-    component: Login
+    component: () => import('./views/Login.vue')
   }
-]
+])
+
+export default routes
