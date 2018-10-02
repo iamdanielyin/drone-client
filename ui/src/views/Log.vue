@@ -78,7 +78,7 @@ Vue.use(NavBar).use(Icon).use(Collapse).use(CollapseItem).use(Cell).use(Tag).use
 VueClipboard.config.autoSetContainer = true
 
 export default {
-  name: 'home',
+  name: 'log',
   data () {
     return {
       isLoading: false,

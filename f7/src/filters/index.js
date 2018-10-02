@@ -2,6 +2,31 @@
 import moment from 'moment'
 
 /**
+ * 计算时间差
+ * @param unix
+ * @returns {string}
+ */
+export function fromNowWithUnix (unix) {
+  if (!unix) {
+    return ''
+  }
+  return moment.unix(unix).fromNow()
+}
+/**
+ * 计算耗时
+ * @param {unix} startedAt 开始时间
+ * @param {unix} finishedAt 结束时间
+ */
+export function calcTime (startedAt, finishedAt) {
+  let time = moment.unix(finishedAt).diff(moment.unix(startedAt), 's')
+  if (time < 60) {
+    return `${time}s`
+  } else {
+    time = moment.unix(finishedAt).diff(moment.unix(startedAt), 'm')
+    return `${time}m`
+  }
+}
+/**
  * 格式化日期类型
  * @param value
  * @param format

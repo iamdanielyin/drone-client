@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { Toast } from 'vant'
+import { app } from '@/utils/utility'
 
 /**
  * token拦截器
@@ -27,11 +27,7 @@ function networkInterceptor (error) {
  */
 function responseInterceptor (error) {
   console.error(`Network error: ${error}`)
-  Toast({
-    message: error.message,
-    type: 'fail',
-    duration: 5 * 1000
-  })
+  app().$f7.dialog.alert(error.message)
   return Promise.reject(error)
 }
 
@@ -52,11 +48,7 @@ instance.interceptors.response.use(
     if (res.status >= 200 && res.status < 300) {
       return res.data
     }
-    Toast({
-      message: 'Network error',
-      type: 'fail',
-      duration: 5 * 1000
-    })
+    app().$f7.dialog.alert('Network error')
   },
   responseInterceptor
 )

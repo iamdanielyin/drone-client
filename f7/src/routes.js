@@ -17,19 +17,16 @@ function asyncLazy (routes) {
 
 const routes = asyncLazy([
   {
-    name: 'home',
     path: '/',
     component: () => import('./views/Home.vue')
   },
   {
-    name: 'about',
-    path: '/about',
-    component: () => import('./views/About.vue')
+    path: '/build',
+    component: () => import('./views/Build.vue')
   },
   {
-    name: 'login',
-    path: '/login',
-    component: () => import('./views/Login.vue')
+    path: '/log',
+    component: () => import('./views/Log.vue')
   }
 ])
 

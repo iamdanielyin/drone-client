@@ -84,7 +84,7 @@ import { getReposBuilds, postReposBuilds, deleteReposBuilds } from '@/api/build'
 Vue.use(NavBar).use(List).use(Panel).use(Card).use(Icon).use(Button).use(Tag).use(PullRefresh).use(Actionsheet).use(Loading).use(Switch)
 
 export default {
-  name: 'home',
+  name: 'build',
   data () {
     return {
       intelligentFiltered: false,
