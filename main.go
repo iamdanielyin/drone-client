@@ -132,12 +132,9 @@ func main() {
 				"errmsg":  "Invalid code",
 			})
 		}
-		authToken := Get(data["UserId"].(string))
-		if authToken != "" {
-			c.Redirect(http.StatusMovedPermanently, "/ui")
-		} else {
-			c.Redirect(http.StatusMovedPermanently, "/ui/bind")
-		}
+		userID := data["UserId"].(string)
+		authToken := Get(userID)
+		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("/ui?user_id=%s&auth_token=%s", userID, authToken))
 	})
 	vi.Any(fmt.Sprintf("%s/*api", apiTrigger), func(c *gin.Context) {
 		simpleHostProxy.ServeHTTP(c.Writer, c.Request)
