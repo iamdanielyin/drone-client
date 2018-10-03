@@ -42,13 +42,14 @@
             v-for="proc in procs"
             :key="proc.id"
             :title="proc.name"
+            :accordion-item-opened="activeProcPid === proc.pid"
             @accordion:open="handleProcChange(proc.pid)"
           >
             <f7-accordion-content>
               <f7-block>
                 <div
                   v-for="(log, index) in buildLogs"
-                  :key="index"
+                  :key="index + 1"
                 >
                   <span class="logContentNo">{{index + 1}}</span>
                   <span class="logContentOut">{{log}}</span>
@@ -59,6 +60,7 @@
         </f7-list>
       </div>
     </template>
+    <p v-show="!builds.length" class="noData">No data.</p>
   </f7-page>
 </template>
 <script>
@@ -123,27 +125,28 @@ export default {
       }
       this.buildInfo = await getReposBuildInfo(this.owner, this.repo, this.build)
       this.procs = _.get(this.buildInfo, 'procs[0].children', [])
-      this.activeProcPid = _.get(this.procs.find(proc => proc.state === 'running'), 'pid') || _.tail(this.procs.map(item => item.pid))
-      await this.handleProcChange(this.activeProcPid)
-      const $this = this
-      _.debounce(() => {
-        $this.isLoading = false
+      await _.debounce(async () => {
+        const activeProcPid = _.find(this.procs.find(proc => proc.state === 'running'), 'pid') || _.last(this.procs.map(item => item.pid))
+        await this.handleProcChange(activeProcPid)
+        this.isLoading = false
       }, 500)()
     },
     handleProcChange: async function (activeProcPid) {
+      this.activeProcPid = activeProcPid
       const proc = this.procs.find(item => item.pid === activeProcPid)
       const state = _.get(proc, 'state')
+      let logs = null
       if (['success', 'failure'].includes(state)) {
-        let logs = await getReposBuildInfoLogs(this.owner, this.repo, this.build, activeProcPid)
+        logs = await getReposBuildInfoLogs(this.owner, this.repo, this.build, activeProcPid)
         logs = _.chain(logs).map(item => item.out).value()
-        this.buildLogs = logs
       } else {
-        this.buildLogs = proc ? [proc.state] : []
+        logs = proc ? [proc.state] : []
       }
+      this.buildLogs = logs
     }
   },
-  created () {
-    this.fetchBuilds(true)
+  mounted () {
+    _.debounce(this.fetchBuilds, 500)(true)
   }
 }
 </script>

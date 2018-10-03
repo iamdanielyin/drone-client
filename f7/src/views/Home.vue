@@ -23,7 +23,7 @@
       </f7-list-item>
     </f7-list>
 
-    <f7-block-title class="searchbar-found">Repositories</f7-block-title>
+    <f7-block-title class="searchbar-found" v-show="reposTotal">Repositories</f7-block-title>
     <f7-list class="components-list searchbar-found" accordion-list>
       <f7-list-item
         v-for="(list, owner) in filteredRepos"
@@ -51,6 +51,7 @@
     <f7-list class="searchbar-not-found">
       <f7-list-item title="Nothing found"></f7-list-item>
     </f7-list>
+    <p v-show="!reposTotal" class="noData">No data.</p>
     <p class="version">{{version}}</p>
   </f7-page>
 </template>
@@ -72,7 +73,8 @@ export default {
       activeNames: ['build-queue'],
       rawRepos: [],
       repos: {},
-      reposTotal: 0
+      reposTotal: 0,
+      version: process.env.VUE_APP_VERSION
     }
   },
   computed: {
@@ -138,9 +140,8 @@ export default {
       return feed
     }
   },
-  created: function () {
-    this.fetchRepos()
-    this.version = process.env.VUE_APP_VERSION
+  mounted: function () {
+    _.debounce(this.fetchRepos, 2000)()
   },
 }
 </script>

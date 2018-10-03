@@ -29,4 +29,11 @@ export default {
 </script>
 
 <style lang="less">
+.noData {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #BDC6D2;
+  font-size: 14px;
+}
 </style>
