@@ -121,6 +121,7 @@ func main() {
 	defer db.Close()
 	engine := gin.New()
 	engine.Static("/ui", "./ui")
+	engine.Static("/f7", "./f7")
 	vi := engine.Group(apiPrefix)
 	vi.GET("/login", func(c *gin.Context) {
 		token := getToken()
