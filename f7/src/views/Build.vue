@@ -126,10 +126,10 @@ export default {
       this.buildInfo = await getReposBuildInfo(this.owner, this.repo, this.build)
       this.procs = _.get(this.buildInfo, 'procs[0].children', [])
       await _.debounce(async () => {
-        const activeProcPid = _.find(this.procs.find(proc => proc.state === 'running'), 'pid') || _.last(this.procs.map(item => item.pid))
+        const activeProcPid = _.first(this.procs.map(item => item.state === 'running' && item.pid)) || _.last(this.procs.map(item => item.pid))
         await this.handleProcChange(activeProcPid)
         this.isLoading = false
-      }, 500)()
+      }, 500).bind(this)()
     },
     handleProcChange: async function (activeProcPid) {
       this.activeProcPid = activeProcPid
