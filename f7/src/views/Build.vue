@@ -1,6 +1,6 @@
 
 <template>
-  <f7-page class="build">
+  <f7-page class="build" ptr @ptr:refresh="handleLoadMore">
     <f7-navbar
       :title="`${$f7route.query.repo} (${builds.length})` || 'Builds'"
       back-link="Back"
@@ -64,7 +64,6 @@
   </f7-page>
 </template>
 <script>
-import moment from 'moment'
 import qs from 'qs'
 import _ from 'lodash'
 import { getReposBuilds, postReposBuilds, deleteReposBuilds, getReposBuildInfo, getReposBuildInfoLogs } from '@/api/build'
@@ -79,7 +78,7 @@ export default {
       activeProcPid: null,
       buildInfo: {},
       buildLogs: [],
-      procs: [],
+      procs: []
     }
   },
   methods: {
@@ -143,6 +142,10 @@ export default {
         logs = proc ? [proc.state] : []
       }
       this.buildLogs = logs
+    },
+    async handleLoadMore (e, done) {
+      await this.fetchBuilds()
+      done()
     }
   },
   mounted () {
@@ -176,8 +179,6 @@ export default {
     font-size: 13px;
     color: #8e8e93;
   }
-
-
   .build-logs {
     position: absolute;
     left: 10px;
