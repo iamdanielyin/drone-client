@@ -134,7 +134,7 @@ func main() {
 		}
 		userID := data["UserId"].(string)
 		authToken := Get(userID)
-		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("/ui?user_id=%s&auth_token=%s", userID, authToken))
+		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("/f7/?user_id=%s&auth_token=%s#!/", userID, authToken))
 	})
 	vi.Any(fmt.Sprintf("%s/*api", apiTrigger), func(c *gin.Context) {
 		simpleHostProxy.ServeHTTP(c.Writer, c.Request)
