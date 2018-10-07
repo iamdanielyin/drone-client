@@ -2,9 +2,9 @@
 <template>
   <f7-page class="home" ptr @ptr:refresh="handleLoadMore">
     <f7-navbar>
-      <f7-nav-left>
+      <!-- <f7-nav-left>
         <f7-link panel-open="left" icon-ios="f7:menu" icon-md="material:menu"></f7-link>
-      </f7-nav-left>
+      </f7-nav-left> -->
       <f7-nav-title>Repo List ({{reposTotal}})</f7-nav-title>
       <f7-nav-right>
         <f7-link class="searchbar-enable" data-searchbar=".searchbar-components" icon-ios="f7:search_strong" icon-md="material:search"></f7-link>
@@ -51,7 +51,7 @@
               :title="repo.name"
               :after="`#${repo.last_build}`"
             >
-              <img slot="media" :src="repo.avatar_url" style="width: 29px; height: 29px; border-radius: 50%;" />
+              <!-- <img slot="media" :src="repo.avatar_url" style="width: 29px; height: 29px; border-radius: 50%;" /> -->
               <f7-swipeout-actions right>
                 <f7-swipeout-button close @click="handleRestartLast(owner, repo.name, repo.last_build)">Restart #{{repo.last_build}}</f7-swipeout-button>
               </f7-swipeout-actions>
