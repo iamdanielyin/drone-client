@@ -6,24 +6,6 @@
       back-link="Back"
     >
     </f7-navbar>
-    <div class="timeline" style="display: none">
-      <div v-for="item in procsChildren" :key="item.pid" class="timeline-item">
-        <div class="timeline-item-date">{{item.start_time | formatUnixDate('HH:mm:ss')}}</div>
-        <div class="timeline-item-divider"></div>
-        <div class="timeline-item-content">
-          <div class="timeline-item-inner" style="overflow: auto; max-height: 100px;">
-            <div
-              v-for="(log, index) in logsContent(item.pid)"
-              :key="index + 1"
-              class="logContent"
-            >
-              <span class="logContentNo">{{index + 1}}</span>
-              <span class="logContentOut">{{log}}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
     <div
       class="status"
       :class="{
@@ -35,7 +17,6 @@
       {{buildInfo.status}}
     </div>
     <div class="message">{{buildInfo.message}}</div>
-
     <div class="buildTime">
       <div class="buildTimeRow">
         <f7-icon class="buildTimeRowIcon" f7="time" size="16px"></f7-icon>
@@ -52,7 +33,13 @@
     </div>
     <f7-popover class="popover-buildTime">{{buildInfo.started_at | unixDateTime}}</f7-popover>
     <div class="buildProcs">
-      <div v-for="item in procsChildren" :key="item.pid" class="buildProc">
+      <div
+        v-for="item in procsChildren"
+        :key="item.pid"
+        class="buildProc"
+        @click="logsOpenProc = item; logsOpened = true"
+        :class="{ buildProcSelected: logsOpenProc.pid === item.pid }"
+      >
         <span class="buildProcName">{{item.name}}</span>
         <span class="buildProcTime">
           <span style="display: inline-block; width: 45px; text-align: right;">
@@ -67,6 +54,25 @@
           </span>
         </span>
       </div>
+      <f7-popup class="proc-logs" :opened="logsOpened" @popup:closed="logsOpened = false">
+        <f7-page>
+          <f7-navbar :title="logsOpenProc.name">
+            <f7-nav-right>
+              <f7-link popup-close>Close</f7-link>
+            </f7-nav-right>
+          </f7-navbar>
+          <f7-block style="margin: 15px 0;">
+            <div
+              v-for="(log, index) in logsContent(logsOpenProc.pid)"
+              :key="index + 1"
+              class="logContent"
+            >
+              <span class="logContentNo">{{index + 1}}</span>
+              <span class="logContentOut">{{log}}</span>
+            </div>
+          </f7-block>
+        </f7-page>
+      </f7-popup>
     </div>
   </f7-page>
 </template>
@@ -78,6 +84,8 @@ export default {
   name: 'log',
   data () {
     return {
+      logsOpenProc: {},
+      logsOpened: false,
       buildInfo: {},
       activeProcPid: null,
       logsCache: {}
@@ -111,7 +119,7 @@ export default {
     fetchBuildLogs: async function (pid) {
       const logsCache = this.logsCache
       const proc = this.procsChildren.find(item => item.pid === pid)
-      if (!proc) {
+      if (!proc || ['killed'].includes(proc.state)) {
         return
       }
       let logs = null
@@ -132,22 +140,25 @@ export default {
 }
 </script>
 <style lang="less" scoped>
+.logContent {
+  .logContentNo {
+    width: 30px;
+    display: inline-block;
+    color: rgba(0, 0, 0, 0.3);
+  }
+  .logContentOut {
+    min-width: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+}
+.proc-logs {
+  :global(.page-content) {
+    background: #eceff1;
+  }
+}
 .log {
   background: #fff;
-  .logContent {
-    white-space: nowrap;
-    .logContentNo {
-      width: 30px;
-      color: rgba(0, 0, 0, 0.3);
-      display: inline-block;
-    }
-    .logContentOut {
-      min-width: 0;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      white-space: nowrap;
-    }
-  }
   .status {
     display: flex;
     padding: 10px 20px;
@@ -189,12 +200,12 @@ export default {
   }
   .buildProcs {
     margin: 20px 0px;
-    padding: 0px 10px;
     line-height: 20px;
     font-size: 14px;
     .buildProc {
       display: flex;
       align-items: center;
+      padding: 0px 10px;
       .buildProcName {
         margin: 0px;
         padding: 0px;
@@ -210,15 +221,15 @@ export default {
         line-height: 32px;
         display: flex;
         align-items: center;
-        margin-right: 15px;
         vertical-align: middle;
       }
+    }
+    .buildProcSelected {
+      background: #eceff1;
     }
   }
   .buildTimeRowIcon {
     margin-right: 10px;
-  }
-  .buildTimeRowVal {
   }
 }
 .popover-buildTime {

@@ -6,67 +6,77 @@
       back-link="Back"
     ></f7-navbar>
 
-    <template v-if="builds.length">
-      <f7-card
+    <f7-list v-if="builds.length" class="build-list">
+      <f7-list-item
         v-for="build in builds"
         :key="build.id"
-        class="build-card"
+        class="build-list-item"
+        :link="`/log?${stringify({ owner, repo, build: build.number })}`"
       >
-        <f7-card-header class="no-border">
-          <div class="build-avatar"><img :src="build.author_avatar" width="34" height="34"/></div>
-          <div
-            class="build-number"
-            :class="{
-              successStatus: build.status === 'success',
-              runningStatus: build.status === 'running',
-              errorStatus: build.finished_at && build.status !== 'success'
-            }"
-            @click.stop.prevent="$f7router.navigate(`/log?${stringify({ owner, repo, build: build.number })}`)"
-          >
-            {{build.number}}
-          </div>
-          <div class="build-name">{{build.author}}</div>
-          <div class="build-date">
-            <template>{{build.started_at | unixDateTime}}</template>
-          </div>
-        </f7-card-header>
-        <f7-card-content>
-          <p>{{build.message}}</p>
-        </f7-card-content>
-        <f7-card-footer class="no-border">
-          <span>{{build.branch}}</span>
-          <span>{{build.started_at | calcTime(build.finished_at, true)}}</span>
-        </f7-card-footer>
-      </f7-card>
-      <div class="build-logs fab-morph-target" slot="fixed">
-        <f7-icon class="fab-close btn-close-logs" ios="f7:close" md="material:close"></f7-icon>
-
-        <f7-block-title>build logs</f7-block-title>
-        <f7-list accordion-list>
-          <f7-list-item
-            accordion-item
-            v-for="proc in procs"
-            :key="proc.id"
-            :title="proc.name"
-            :accordion-item-opened="activeProcPid === proc.pid"
-            @accordion:open="handleProcChange(proc.pid)"
-            :class="{ activeProc: activeProcPid === proc.pid }"
-          >
-            <f7-accordion-content>
-              <f7-block style="padding-bottom: 10px;">
-                <div
-                  v-for="(log, index) in buildLogs"
-                  :key="index + 1"
-                >
-                  <span class="logContentNo">{{index + 1}}</span>
-                  <span class="logContentOut">{{log}}</span>
-                </div>
-              </f7-block>
-            </f7-accordion-content>
-          </f7-list-item>
-        </f7-list>
-      </div>
-    </template>
+        <f7-card
+          class="build-card"
+        >
+          <f7-card-header class="no-border">
+            <div class="build-avatar"><img :src="build.author_avatar" width="34" height="34"/></div>
+            <div
+              class="build-number"
+              :class="{
+                successStatus: build.status === 'success',
+                runningStatus: build.status === 'running',
+                errorStatus: build.finished_at && build.status !== 'success'
+              }"
+            >
+              {{build.number}}
+            </div>
+            <div class="build-name">{{build.author}}</div>
+            <div class="build-date">
+              <template>{{build.started_at | unixDateTime}}</template>
+            </div>
+          </f7-card-header>
+          <f7-card-content>
+            <p>{{build.message}}</p>
+          </f7-card-content>
+          <f7-card-footer class="no-border">
+            <span>{{build.started_at | calcTime(build.finished_at, true)}}</span>
+            <span>
+              <span v-if="build.finished_at && build.status !== 'running'" @click="handleRetry(build.number)">
+                <f7-icon f7="redo" size="20px"></f7-icon>
+              </span>
+              <span v-if="build.status === 'running'" @click="handleCancel(build.number)">
+                <f7-icon f7="close" size="20px" ></f7-icon>
+              </span>
+            </span>
+          </f7-card-footer>
+        </f7-card>
+      </f7-list-item>
+    </f7-list>
+    <div class="build-logs fab-morph-target" slot="fixed">
+      <f7-icon class="fab-close btn-close-logs" ios="f7:close" md="material:close"></f7-icon>
+      <f7-block-title>build logs</f7-block-title>
+      <f7-list accordion-list>
+        <f7-list-item
+          accordion-item
+          v-for="proc in procs"
+          :key="proc.id"
+          :title="proc.name"
+          :accordion-item-opened="activeProcPid === proc.pid"
+          @accordion:open="handleProcChange(proc.pid)"
+          :class="{ activeProc: activeProcPid === proc.pid }"
+        >
+          <f7-accordion-content>
+            <f7-block style="padding-bottom: 10px;">
+              <div
+                v-for="(log, index) in buildLogs"
+                :key="index + 1"
+              >
+                <span class="logContentNo">{{index + 1}}</span>
+                <span class="logContentOut">{{log}}</span>
+              </div>
+            </f7-block>
+          </f7-accordion-content>
+        </f7-list-item>
+      </f7-list>
+    </div>
     <p v-show="!builds.length" class="noData">No data.</p>
   </f7-page>
 </template>
@@ -116,7 +126,7 @@ export default {
       this.loadingBuildId = null
       await _.debounce(this.fetchBuilds, 800)(undefined, false)
     },
-    handleStop: async function (buildId) {
+    handleCancel: async function (buildId) {
       this.loadingBuildId = buildId
       await deleteReposBuilds(this.owner, this.repo, buildId)
       this.loadingBuildId = null
@@ -162,7 +172,26 @@ export default {
 </script>
 <style lang="less" scoped>
 .build {
+  .build-list {
+    margin: 0;
+    :global(ul) {
+      background: transparent;
+    }
+    .build-list-item {
+      margin-bottom: 10px;
+      :global(.item-content) {
+        padding: 0;
+      }
+      :global(.item-inner) {
+        padding: 0;
+      }
+    }
+  }
   .build-card {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    border-radius: 0;
     :global(.card-header) {
       display: block;
       padding: 10px;
