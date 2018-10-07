@@ -2,7 +2,7 @@
 <template>
   <f7-page class="log" ptr @ptr:refresh="handleLoadMore" @page:afterin="afterin" @page:afterout="afterout">
     <f7-navbar
-      :title="`${$f7route.query.repo} #${$f7route.query.build}` || 'Logs'"
+      :title="`${repo} #${build}` || 'Logs'"
       back-link="Back"
     >
     </f7-navbar>
@@ -31,13 +31,30 @@
         <span class="buildTimeRowVal" v-if="buildInfo.started_at && buildInfo.finished_at">{{buildInfo.started_at | calcTime(buildInfo.finished_at, true)}}</span>
       </div>
     </div>
+    <div class="buildTime">
+      <div class="buildTimeRow">
+        <f7-icon class="buildTimeRowIcon" f7="paper_plane_fill" size="16px"></f7-icon>
+        <span class="buildTimeRowVal">
+          <f7-link popover-open=".popover-buildTime" style="color: #000;">
+            <template v-if="buildInfo.commit">{{buildInfo.commit.substr(0, 10)}}</template>
+          </f7-link>
+        </span>
+        <f7-link :href="buildInfo.link_url" target="_blank" external style="position: absolute; right: 0; color: #000;">
+          <f7-icon class="buildTimeRowIcon" fa="link" size="16px"></f7-icon>
+        </f7-link>
+      </div>
+      <div class="buildTimeRow">
+        <f7-icon class="buildTimeRowIcon" fa="code-branch" size="16px" style="width: 16px;"></f7-icon>
+        <span class="buildTimeRowVal">{{buildInfo.branch}}</span>
+      </div>
+    </div>
     <f7-popover class="popover-buildTime">{{buildInfo.started_at | unixDateTime}}</f7-popover>
     <div class="buildProcs">
       <div
-        v-for="item in procsChildren"
+        v-for="(item, index) in procsChildren"
         :key="item.pid"
         class="buildProc"
-        @click="logsOpenProc = item; logsOpened = true"
+        @click="handleLogsOpen(item, index)"
         :class="{ buildProcSelected: logsOpenProc.pid === item.pid }"
       >
         <span class="buildProcName">{{item.name}}</span>
@@ -54,14 +71,23 @@
           </span>
         </span>
       </div>
-      <f7-popup class="proc-logs" :opened="logsOpened" @popup:closed="logsOpened = false">
-        <f7-page>
+      <f7-popup class="proc-logs" :opened="logsOpened" @popup:closed="handleLogsClose">
+        <f7-page style="background: #fff;">
           <f7-navbar :title="logsOpenProc.name">
             <f7-nav-right>
               <f7-link popup-close>Close</f7-link>
             </f7-nav-right>
           </f7-navbar>
-          <f7-block style="margin: 15px 0;">
+          <f7-block class="logBlock">
+            <div
+              :class="{
+                successColor: logsOpenProc.state === 'success',
+                runningColor: logsOpenProc.state === 'running',
+                errorColor: logsOpenProc.end_time && logsOpenProc.state !== 'success'
+              }"
+            >{{logsOpenProc.state}}</div>
+          </f7-block>
+          <f7-block class="logBlock">
             <div
               v-for="(log, index) in logsContent(logsOpenProc.pid)"
               :key="index + 1"
@@ -70,13 +96,21 @@
               <span class="logContentNo">{{index + 1}}</span>
               <span class="logContentOut">{{log}}</span>
             </div>
+            <div class="logContent">exit code {{logsOpenProc.exit_code}}</div>
           </f7-block>
+          <div class="proc-logs-actions">
+            <f7-segmented round style="width: 100px; background: #fff;">
+              <f7-button icon-size="18px" icon-f7="chevron_left" @click="handleLogsUp" :disabled="logsOpenIndex === 0"></f7-button>
+              <f7-button icon-size="18px" icon-f7="chevron_right" @click="handleLogsDown" :disabled="logsOpenIndex === procsChildren.length - 1"></f7-button>
+            </f7-segmented>
+          </div>
         </f7-page>
       </f7-popup>
     </div>
   </f7-page>
 </template>
 <script>
+import qs from 'qs'
 import _ from 'lodash'
 import { getReposBuildInfo, getReposBuildInfoLogs } from '@/api/build'
 
@@ -84,8 +118,12 @@ export default {
   name: 'log',
   data () {
     return {
+      owner: null,
+      repo: null,
+      build: null,
       fetchInterval: null,
       logsOpenProc: {},
+      logsOpenIndex: 0,
       logsOpened: false,
       buildInfo: {},
       activeProcPid: null,
@@ -97,9 +135,15 @@ export default {
       return _.get(this.buildInfo, 'procs[0].children', [])
     }
   },
+  mounted () {
+    this.owner = this.$f7route.query.owner
+    this.repo = this.$f7route.query.repo
+    this.build = this.$f7route.query.build
+  },
   methods: {
     afterin () {
       this.autoRefresh()
+      this.fetchBuildInfo()
     },
     afterout () {
       this.autoRefresh(false)
@@ -121,10 +165,32 @@ export default {
     logsContent (pid) {
       return this.logsCache[pid] || []
     },
+    handleLogsOpen (item, index) {
+      this.logsOpenProc = item
+      this.logsOpenIndex = index
+      this.logsOpened = true
+    },
+    handleLogsClose () {
+      this.logsOpened = false
+      const query = this.$f7route.query
+    },
+    handleLogsUp () {
+      if (this.logsOpenIndex > 0) {
+        const index = this.logsOpenIndex - 1
+        const item = this.procsChildren[index]
+        this.logsOpenProc = item
+        this.logsOpenIndex = index
+      }
+    },
+    handleLogsDown () {
+      if (this.logsOpenIndex < this.procsChildren.length) {
+        const index = this.logsOpenIndex + 1
+        const item = this.procsChildren[index]
+        this.logsOpenProc = item
+        this.logsOpenIndex = index
+      }
+    },
     fetchBuildInfo: async function () {
-      this.owner = this.$f7route.query.owner
-      this.repo = this.$f7route.query.repo
-      this.build = this.$f7route.query.build
       if (!this.owner || !this.repo || !this.build) {
         return
       }
@@ -154,9 +220,6 @@ export default {
       }
       return logs
     }
-  },
-  mounted () {
-    this.fetchBuildInfo()
   }
 }
 </script>
@@ -173,9 +236,36 @@ export default {
     word-wrap: break-word;
   }
 }
+
+.successColor {
+  color: #4dc89a;
+}
+.errorColor {
+  color: #fc4758;
+}
+.runningColor {
+  color: #2196f3;
+}
+.logBlock {
+  margin: 0 0 5px 0;
+  margin-bottom: 5px;
+  background: #eceff1;
+  padding: 10px 15px;
+}
 .proc-logs {
-  :global(.page-content) {
-    background: #eceff1;
+  // :global(.page-content) {
+  //   background: #eceff1;
+  // }
+  .proc-logs-actions {
+    position: fixed;
+    z-index: 1;
+    width: 100%;
+    bottom: 20px;
+    display: flex;
+    justify-content: center;
+    >i:first-child {
+      margin-right: 10px;
+    }
   }
 }
 .log {
@@ -217,6 +307,7 @@ export default {
       margin: 5px 0;
       display: flex;
       align-items: center;
+      position: relative;
     }
   }
   .buildProcs {

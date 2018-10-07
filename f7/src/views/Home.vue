@@ -108,6 +108,7 @@ export default {
     stringify: qs.stringify,
     afterin () {
       this.autoRefresh()
+      this.fetchRepos()
     },
     afterout () {
       this.autoRefresh(false)
@@ -172,9 +173,6 @@ export default {
       await this.fetchRepos()
       done()
     }
-  },
-  mounted: function () {
-    _.debounce(this.fetchRepos, 500)()
   }
 }
 </script>

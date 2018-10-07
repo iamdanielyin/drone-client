@@ -1,6 +1,6 @@
 {
   "name": "f7",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "private": true,
   "scripts": {
     "start": "npm run serve",
@@ -21,6 +21,7 @@
     "vuex": "^3.0.1"
   },
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.3.1",
     "@vue/cli-plugin-babel": "^3.0.1",
     "@vue/cli-plugin-eslint": "^3.0.1",
     "@vue/cli-service": "^3.0.1",

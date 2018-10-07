@@ -2,6 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import store from './store'
 import 'framework7/css/framework7.min.css'
+import '@fortawesome/fontawesome-free/css/all.css'
 import 'framework7-icons'
 import * as filters from './filters'
 

@@ -2,7 +2,7 @@
 <template>
   <f7-page class="build" ptr @ptr:refresh="handleLoadMore" @page:afterin="afterin" @page:afterout="afterout">
     <f7-navbar
-      :title="`${$f7route.query.repo} (${builds.length})` || 'Builds'"
+      :title="`${repo} (${builds.length})` || 'Builds'"
       back-link="Back"
     ></f7-navbar>
 
@@ -89,6 +89,8 @@ export default {
   name: 'build',
   data () {
     return {
+      owner: null,
+      repo: null,
       isLoading: false,
       builds: [],
       build: null,
@@ -99,10 +101,15 @@ export default {
       procs: []
     }
   },
+  mounted () {
+    this.owner = this.$f7route.query.owner
+    this.repo = this.$f7route.query.repo
+  },
   methods: {
     stringify: qs.stringify,
     afterin () {
       this.autoRefresh()
+      this.fetchBuilds()
     },
     afterout () {
       this.autoRefresh(false)
@@ -125,8 +132,6 @@ export default {
       if (needLoading === true) {
         this.isLoading = true
       }
-      this.owner = this.$f7route.query.owner
-      this.repo = this.$f7route.query.repo
       if (!this.owner || !this.repo) {
         return
       }
@@ -181,9 +186,6 @@ export default {
       await this.fetchBuilds()
       done()
     }
-  },
-  mounted () {
-    _.debounce(this.fetchBuilds, 500)(true)
   }
 }
 </script>
@@ -191,6 +193,7 @@ export default {
 .build {
   .build-list {
     margin: 0;
+    // margin-top: 10px;
     :global(ul) {
       background: transparent;
     }
