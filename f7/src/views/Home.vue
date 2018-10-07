@@ -24,30 +24,37 @@
         :link="`/log?${stringify({ owner: item.owner, repo: item.name, build: item.number })}`"
         :key="item.full_name + ':' + item.number"
       >
-        <f7-icon slot="media" icon="icon-f7"></f7-icon>
+        <img slot="media" :src="item.author_avatar" style="width: 29px; height: 29px; border-radius: 50%;" />
+        <f7-preloader slot="after" v-if="item.status === 'running'" color="orange"></f7-preloader>
       </f7-list-item>
     </f7-list>
 
     <f7-block-title class="searchbar-found" v-show="reposTotal">Repositories</f7-block-title>
     <f7-list class="components-list searchbar-found" accordion-list>
       <f7-list-item
+        accordion-item
         v-for="(list, owner) in filteredRepos"
         :key='owner'
         v-if="list.length"
         :title="owner"
-        :badge="list.length"
-        accordion-item
         :accordion-item-opened="!!searchValue"
       >
+        <img v-if="list.length" :src="list[0].avatar_url" slot="media" style="width: 29px; height: 29px;" />
+        <f7-icon slot="media" v-if="!list.length" f7="collection_fill" size="29px"></f7-icon>
         <f7-accordion-content>
           <f7-list>
             <f7-list-item
+              swipeout
               v-for="repo in list"
               :key='repo.id'
               :link="`/build?${stringify({ owner, repo: repo.name })}`"
               :title="repo.name"
+              :after="`#${repo.last_build}`"
             >
-              <f7-icon slot="media" icon="icon-f7"></f7-icon>
+              <img slot="media" :src="repo.avatar_url" style="width: 29px; height: 29px; border-radius: 50%;" />
+              <f7-swipeout-actions right>
+                <f7-swipeout-button close @click="handleRestartLast(owner, repo.name, repo.last_build)">Restart #{{repo.last_build}}</f7-swipeout-button>
+              </f7-swipeout-actions>
             </f7-list-item>
           </f7-list>
         </f7-accordion-content>
@@ -66,6 +73,7 @@ import _ from 'lodash'
 import qs from 'qs'
 import { getUserRepos } from '@/api/repo'
 import { getUserFeed } from '@/api/user'
+import { postReposBuilds } from '@/api/build'
 
 export default {
   name: 'home',
@@ -98,6 +106,13 @@ export default {
   },
   methods: {
     stringify: qs.stringify,
+    handleRestartLast: async function (owner, repo, build) {
+      if (!owner || !repo || !build) {
+        return
+      }
+      await postReposBuilds(owner, repo, build)
+      _.debounce(this.fetchRepos, 500)()
+    },
     handleSearch (searchbar, query) {
       this.searchValue = query
     },

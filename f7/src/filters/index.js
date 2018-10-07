@@ -17,14 +17,28 @@ export function fromNowWithUnix (unix) {
  * @param {unix} startedAt 开始时间
  * @param {unix} finishedAt 结束时间
  */
-export function calcTime (startedAt, finishedAt) {
-  let time = moment.unix(finishedAt).diff(moment.unix(startedAt), 's')
-  if (time < 60) {
-    return `${time}s`
+export function calcTime (startedAt, finishedAt, long) {
+  let time = startedAt && finishedAt ? moment.unix(finishedAt).diff(moment.unix(startedAt), 's') : 0
+  let mins = parseInt(time / 60)
+  let secs = time % 60
+  if (long) {
+    return mins > 0 ? `${mins} minutes, ${secs} seconds` : `${secs} seconds`
   } else {
-    time = moment.unix(finishedAt).diff(moment.unix(startedAt), 'm')
-    return `${time}m`
+    return mins > 0 ? `${mins}m, ${secs}s` : `${secs}s`
   }
+}
+/**
+ * 计算耗时
+ * @param {unix} startedAt 开始时间
+ * @param {unix} finishedAt 结束时间
+ */
+export function calcTimeClock (startedAt, finishedAt) {
+  let time = startedAt && finishedAt ? moment.unix(finishedAt).diff(moment.unix(startedAt), 's') : 0
+  let mins = parseInt(time / 60)
+  let secs = time % 60
+  mins = mins > 9 ? mins : `0${mins}`
+  secs = secs > 9 ? secs : `0${secs}`
+  return `${mins}:${secs}`
 }
 /**
  * 格式化日期类型
@@ -45,7 +59,7 @@ function formatDate (value, format) {
  * @param format
  * @returns {string}
  */
-function formatUnixDate (value, format) {
+export function formatUnixDate (value, format) {
   if (!value) {
     return ''
   }

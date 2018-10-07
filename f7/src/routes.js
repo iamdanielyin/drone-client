@@ -27,6 +27,10 @@ const routes = asyncLazy([
   {
     path: '/build',
     component: () => import('./views/Build.vue')
+  },
+  {
+    path: '/log',
+    component: () => import('./views/Log.vue')
   }
 ])
 

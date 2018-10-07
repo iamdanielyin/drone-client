@@ -14,22 +14,28 @@
       >
         <f7-card-header class="no-border">
           <div class="build-avatar"><img :src="build.author_avatar" width="34" height="34"/></div>
-          <div class="build-number">#{{build.number}}</div>
-          <div class="build-name">{{build.author}}:{{build.branch}}</div>
+          <div
+            class="build-number"
+            :class="{
+              successStatus: build.status === 'success',
+              runningStatus: build.status === 'running',
+              errorStatus: build.finished_at && build.status !== 'success'
+            }"
+            @click.stop.prevent="$f7router.navigate(`/log?${stringify({ owner, repo, build: build.number })}`)"
+          >
+            {{build.number}}
+          </div>
+          <div class="build-name">{{build.author}}</div>
           <div class="build-date">
-            <template>{{build.created_at | fromNowWithUnix}}</template>
-            <template v-if="build.started_at && build.finished_at">, {{build.started_at | calcTime(build.finished_at)}}</template>
+            <template>{{build.started_at | unixDateTime}}</template>
           </div>
         </f7-card-header>
         <f7-card-content>
           <p>{{build.message}}</p>
         </f7-card-content>
         <f7-card-footer class="no-border">
-          <f7-link v-if="build.status !== 'running'" @click.stop.prevent="handleRetry(build.number)">RETRY</f7-link>
-          <f7-link v-if="build.status === 'running'" @click.stop.prevent="handleStop(build.number)">STOP</f7-link>
-          <f7-fab class="btn-build-logs" morph-to=".build-logs.fab-morph-target" @click="handleLogs(build.number)">
-            <f7-icon ios="f7:right" md="material:right"></f7-icon>
-          </f7-fab>
+          <span>{{build.branch}}</span>
+          <span>{{build.started_at | calcTime(build.finished_at, true)}}</span>
         </f7-card-footer>
       </f7-card>
       <div class="build-logs fab-morph-target" slot="fixed">
@@ -44,9 +50,10 @@
             :title="proc.name"
             :accordion-item-opened="activeProcPid === proc.pid"
             @accordion:open="handleProcChange(proc.pid)"
+            :class="{ activeProc: activeProcPid === proc.pid }"
           >
             <f7-accordion-content>
-              <f7-block>
+              <f7-block style="padding-bottom: 10px;">
                 <div
                   v-for="(log, index) in buildLogs"
                   :key="index + 1"
@@ -163,11 +170,19 @@ export default {
   }
   .build-avatar {
     float: left;
+    img {
+      border-radius: 50%;
+    }
   }
   .build-number {
     float: right;
     font-size: 14px;
-    color: #8e8e93;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 2px;
+    text-align: center;
+    line-height: 20px;
+    min-width: 65px;
   }
   .build-name {
     margin-left: 44px;
@@ -219,6 +234,21 @@ export default {
     min-width: 0;
     white-space: pre-wrap;
     word-wrap: break-word;
+  }
+  .activeProc {
+    background: #eceff1;
+  }
+  .successStatus {
+    border-color: #4dc89a;
+    color: #4dc89a;
+  }
+  .runningStatus {
+    border-color: #2196f3;
+    color: #2196f3;
+  }
+  .errorStatus {
+    border-color: #fc4758;
+    color: #fc4758;
   }
 }
 :global(.ios .fab-morph) {
