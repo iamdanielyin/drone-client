@@ -1,6 +1,6 @@
 
 <template>
-  <f7-page class="build" ptr @ptr:refresh="handleLoadMore">
+  <f7-page class="build" ptr @ptr:refresh="handleLoadMore" @page:afterin="afterin" @page:afterout="afterout">
     <f7-navbar
       :title="`${$f7route.query.repo} (${builds.length})` || 'Builds'"
       back-link="Back"
@@ -93,6 +93,7 @@ export default {
       builds: [],
       build: null,
       activeProcPid: null,
+      fetchInterval: null,
       buildInfo: {},
       buildLogs: [],
       procs: []
@@ -100,6 +101,22 @@ export default {
   },
   methods: {
     stringify: qs.stringify,
+    afterin () {
+      this.autoRefresh()
+    },
+    afterout () {
+      this.autoRefresh(false)
+    },
+    autoRefresh (restart = true) {
+      if (this.fetchInterval) {
+        window.clearInterval(this.fetchInterval)
+      }
+      if (restart === true) {
+        this.fetchInterval = window.setInterval(this.fetchBuilds.bind(this, undefined, false), 8 * 1000)
+      } else {
+        this.fetchInterval = null
+      }
+    },
     handleLogs (build) {
       this.build = build
       this.fetchBuildInfo()

@@ -1,6 +1,6 @@
 
 <template>
-  <f7-page class="log">
+  <f7-page class="log" ptr @ptr:refresh="handleLoadMore" @page:afterin="afterin" @page:afterout="afterout">
     <f7-navbar
       :title="`${$f7route.query.repo} #${$f7route.query.build}` || 'Logs'"
       back-link="Back"
@@ -84,6 +84,7 @@ export default {
   name: 'log',
   data () {
     return {
+      fetchInterval: null,
       logsOpenProc: {},
       logsOpened: false,
       buildInfo: {},
@@ -97,6 +98,26 @@ export default {
     }
   },
   methods: {
+    afterin () {
+      this.autoRefresh()
+    },
+    afterout () {
+      this.autoRefresh(false)
+    },
+    autoRefresh (restart = true) {
+      if (this.fetchInterval) {
+        window.clearInterval(this.fetchInterval)
+      }
+      if (restart === true) {
+        this.fetchInterval = window.setInterval(this.fetchBuildInfo.bind(this, undefined, false), 8 * 1000)
+      } else {
+        this.fetchInterval = null
+      }
+    },
+    async handleLoadMore (e, done) {
+      await this.fetchBuildInfo()
+      done()
+    },
     logsContent (pid) {
       return this.logsCache[pid] || []
     },

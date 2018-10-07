@@ -1,6 +1,6 @@
 
 <template>
-  <f7-page class="home" ptr @ptr:refresh="handleLoadMore">
+  <f7-page class="home" ptr @ptr:refresh="handleLoadMore" @page:afterin="afterin" @page:afterout="afterout">
     <f7-navbar>
       <!-- <f7-nav-left>
         <f7-link panel-open="left" icon-ios="f7:menu" icon-md="material:menu"></f7-link>
@@ -106,6 +106,22 @@ export default {
   },
   methods: {
     stringify: qs.stringify,
+    afterin () {
+      this.autoRefresh()
+    },
+    afterout () {
+      this.autoRefresh(false)
+    },
+    autoRefresh (restart = true) {
+      if (this.fetchInterval) {
+        window.clearInterval(this.fetchInterval)
+      }
+      if (restart === true) {
+        this.fetchInterval = window.setInterval(this.fetchRepos.bind(this, undefined, false), 8 * 1000)
+      } else {
+        this.fetchInterval = null
+      }
+    },
     handleRestartLast: async function (owner, repo, build) {
       if (!owner || !repo || !build) {
         return
