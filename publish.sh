@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ver="0.0.21"
+ver="0.0.22"
 tag="yinfxs/drone-client:$ver"
 cd ./ui && cnpm i && npm run build && cd ../
 cd ./f7 && cnpm i && npm run build && cd ../
