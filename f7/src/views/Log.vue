@@ -98,12 +98,12 @@
             </div>
             <div class="logContent">exit code {{logsOpenProc.exit_code}}</div>
           </f7-block>
-          <div class="proc-logs-actions">
-            <f7-segmented round style="width: 100px; background: #fff;">
+          <f7-fab position="center-bottom" slot="fixed">
+            <f7-segmented round class="proc-logs-actions" >
               <f7-button icon-size="18px" icon-f7="chevron_left" @click="handleLogsUp" :disabled="logsOpenIndex === 0"></f7-button>
               <f7-button icon-size="18px" icon-f7="chevron_right" @click="handleLogsDown" :disabled="logsOpenIndex === procsChildren.length - 1"></f7-button>
             </f7-segmented>
-          </div>
+          </f7-fab>
         </f7-page>
       </f7-popup>
     </div>
@@ -253,18 +253,17 @@ export default {
   padding: 10px 15px;
 }
 .proc-logs {
-  // :global(.page-content) {
-  //   background: #eceff1;
-  // }
+  :global(.fab>a) {
+    background: transparent;
+    width: auto;
+    height: auto;
+    box-shadow: none;
+    border-radius: 0;
+  }
   .proc-logs-actions {
-    position: fixed;
-    z-index: 1;
-    width: 100%;
-    bottom: 20px;
-    display: flex;
-    justify-content: center;
-    >i:first-child {
-      margin-right: 10px;
+    width: 80px;
+    :global(.button) {
+      background: #fff;
     }
   }
 }
