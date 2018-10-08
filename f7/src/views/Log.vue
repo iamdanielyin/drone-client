@@ -110,7 +110,6 @@
   </f7-page>
 </template>
 <script>
-import qs from 'qs'
 import _ from 'lodash'
 import { getReposBuildInfo, getReposBuildInfoLogs } from '@/api/build'
 
@@ -172,7 +171,6 @@ export default {
     },
     handleLogsClose () {
       this.logsOpened = false
-      const query = this.$f7route.query
     },
     handleLogsUp () {
       if (this.logsOpenIndex > 0) {
